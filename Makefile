@@ -11,6 +11,10 @@ test-coverage:
 lint:
 	npx eslint .
 
+develop:
+	rm -rf dist
+	NODE_ENV=development npx webpack
+
 publish:
 	npm publish --dry-run
 
