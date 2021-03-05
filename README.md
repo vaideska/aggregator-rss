@@ -6,3 +6,5 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/bc01150db71cc3a29270/maintainability)](https://codeclimate.com/github/vaideska/frontend-project-lvl3/maintainability)
 
 [![Test Coverage](https://api.codeclimate.com/v1/badges/bc01150db71cc3a29270/test_coverage)](https://codeclimate.com/github/vaideska/frontend-project-lvl3/test_coverage)
+
+Посмотреть приложение: https://vaideska-project-3.vercel.app/
