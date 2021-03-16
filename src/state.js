@@ -1,6 +1,6 @@
 const state = {
   input: {
-    value: '',
+    url: '',
     valid: true,
   },
   feeds: [],
