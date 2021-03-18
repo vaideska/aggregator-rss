@@ -26,6 +26,7 @@ const addStreamInState = (stream) => stream; // !!!
 const downloadStream = (url) => {
   axios
     .get(`${proxy}${encodeURIComponent(url)}`).then((response) => {
+      console.log(response);
       if (response.status === 200 && response.data.contents !== '') {
         const stream = parserRSS(response.data.contents);
         addStreamInState(stream);
@@ -47,6 +48,7 @@ const controller = (e) => {
       changeState(url, valid);
     })
     .then(downloadStream(url));
+  //  проверка, что такого потока больше нет
   // изменение state
 };
 
