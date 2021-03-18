@@ -2,7 +2,7 @@ import * as yup from 'yup';
 import axios from 'axios';
 import watchedState from './view';
 
-const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
+const proxy = 'https://api.allorigins.win/get?url=$';
 
 const isValid = (url) => {
   const schema = yup.string().url().matches(/(\.rss$)/);
