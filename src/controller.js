@@ -1,55 +1,93 @@
 import * as yup from 'yup';
 import axios from 'axios';
-import watchedState from './view';
+import _ from 'lodash';
+import { watchedStatus, watchedStateData, watchedProcess } from './view';
+import state from './model';
 
-const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=$';
+const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
+
+const isUrlInState = (url) => state.streams.filter((stream) => stream.url === url).length > 0;
 
 const isValid = (url) => {
-  const schema = yup.string().url().matches(/(\.rss$)/);
+  const schema = yup.string().url();
   return schema.isValid(url);
 };
+
+const downloadStream = (url) => axios.get(`${proxy}${encodeURIComponent(url)}`);
 
 const parserRSS = (data) => {
   const parser = new DOMParser();
   return parser.parseFromString(data, 'application/xml');
 };
 
-const changeState = (url, valid) => {
-  watchedState.input = {
+const changeStatus = (url, valid, errorMsg = '') => {
+  watchedStatus.input = {
     url,
     valid,
+    errorMsg,
   };
 };
 
-const addStreamInState = (stream) => stream; // !!!
+const addStreamInState = (url, dataStream) => {
+  const idStream = _.uniqueId();
+  const stream = { url, id: idStream };
 
-const downloadStream = (url) => {
-  axios
-    .get(`${proxy}${encodeURIComponent(url)}`).then((response) => {
-      console.log(response);
-      if (response.status === 200 && response.data.contents !== '') {
-        const stream = parserRSS(response.data.contents);
-        addStreamInState(stream);
-      } else {
-        changeState(url, false);
-      }
-    })
-    .catch(() => {
-      changeState(url, false);
-    });
+  const channelElement = dataStream.querySelector('channel');
+  const idFeed = _.uniqueId();
+  state.feeds.push({
+    id: idFeed,
+    idStream,
+    data: {
+      title: channelElement.querySelector('title'),
+      description: channelElement.querySelector('description'),
+    },
+  });
+
+  const itemElements = dataStream.querySelectorAll('item');
+  itemElements.forEach((itemElement) => {
+    const post = {
+      id: _.uniqueId(),
+      idFeed,
+      data: {
+        title: itemElement.querySelector('title'),
+        link: itemElement.querySelector('link'),
+        description: itemElement.querySelector('description'),
+      },
+    };
+    state.posts.push(post);
+  });
+
+  watchedStateData.streams.push(stream);
+  changeStatus('', true);
 };
 
-const controller = (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
+const controller = (element) => {
+  element.preventDefault();
+  const formData = new FormData(element.target);
   const url = formData.get('url');
+  watchedProcess.input.url = url;
+  if (isUrlInState(url)) {
+    changeStatus(url, false, 'RSS уже существует');
+    return;
+  }
   isValid(url)
     .then((valid) => {
-      changeState(url, valid);
+      if (!valid) {
+        throw new Error('Ссылка должна быть валидным URL');
+      }
+      return downloadStream(url);
     })
-    .then(downloadStream(url));
-  //  проверка, что такого потока больше нет
-  // изменение state
+    .then((response) => {
+      if (response.data.contents !== '' && response.data.contents !== null) {
+        const dataStream = parserRSS(response.data.contents);
+        addStreamInState(url, dataStream);
+      } else {
+        throw new Error('Ресурс не содержит валидный RSS');
+      }
+    })
+    .catch((err) => {
+      changeStatus(url, false, err.message);
+    });
 };
 
 const app = () => {

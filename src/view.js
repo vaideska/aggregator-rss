@@ -1,9 +1,15 @@
 import onChange from 'on-change';
-import render from './render';
+import { renderFeedback, renderStreams, renderBlockForm } from './render';
 import state from './model';
 
-const watchedState = onChange(state, () => {
-  render(state);
+export const watchedStatus = onChange(state, () => {
+  renderFeedback(state.input);
 });
 
-export default watchedState;
+export const watchedProcess = onChange(state, () => {
+  renderBlockForm(state.input);
+});
+
+export const watchedStateData = onChange(state, () => {
+  renderStreams(state);
+});
