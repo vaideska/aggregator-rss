@@ -38,8 +38,8 @@ const addStreamInState = (url, dataStream) => {
     id: idFeed,
     idStream,
     data: {
-      title: channelElement.querySelector('title'),
-      description: channelElement.querySelector('description'),
+      title: channelElement.querySelector('title').textContent,
+      description: channelElement.querySelector('description').textContent,
     },
   });
 
@@ -49,9 +49,9 @@ const addStreamInState = (url, dataStream) => {
       id: _.uniqueId(),
       idFeed,
       data: {
-        title: itemElement.querySelector('title'),
-        link: itemElement.querySelector('link'),
-        description: itemElement.querySelector('description'),
+        title: itemElement.querySelector('title').textContent,
+        link: itemElement.querySelector('link').textContent,
+        description: itemElement.querySelector('description').textContent,
       },
     };
     state.posts.push(post);
@@ -65,11 +65,14 @@ const controller = (element) => {
   element.preventDefault();
   const formData = new FormData(element.target);
   const url = formData.get('url');
+
   watchedProcess.input.url = url;
+
   if (isUrlInState(url)) {
     changeStatus(url, false, 'RSS уже существует');
     return;
   }
+
   isValid(url)
     .then((valid) => {
       if (!valid) {
