@@ -17,7 +17,11 @@ const downloadStream = (url) => axios.get(`${proxy}${encodeURIComponent(url)}`);
 
 const parserRSS = (data) => {
   const parser = new DOMParser();
-  return parser.parseFromString(data, 'application/xml');
+  const parserData = parser.parseFromString(data, 'application/xml');
+  if (parserData.querySelector('parsererror') !== null) {
+    throw new Error('Ресурс не содержит валидный RSS');
+  }
+  return parserData;
 };
 
 const changeStatus = (url, valid, errorMsg = '') => {
@@ -39,7 +43,7 @@ const addStreamInState = (url, dataStream) => {
     idStream,
     data: {
       title: channelElement.querySelector('title').textContent,
-      description: channelElement.querySelector('description').textContent,
+      description: channelElement.querySelector('description') === null ? '' : channelElement.querySelector('description').textContent,
     },
   });
 
@@ -51,7 +55,7 @@ const addStreamInState = (url, dataStream) => {
       data: {
         title: itemElement.querySelector('title').textContent,
         link: itemElement.querySelector('link').textContent,
-        description: itemElement.querySelector('description').textContent,
+        description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
       },
     };
     state.posts.push(post);
@@ -64,7 +68,7 @@ const addStreamInState = (url, dataStream) => {
 const controller = (element) => {
   element.preventDefault();
   const formData = new FormData(element.target);
-  const url = formData.get('url');
+  const url = formData.get('url').trim();
 
   watchedProcess.input.url = url;
 
@@ -81,12 +85,8 @@ const controller = (element) => {
       return downloadStream(url);
     })
     .then((response) => {
-      if (response.data.contents !== '' && response.data.contents !== null) {
-        const dataStream = parserRSS(response.data.contents);
-        addStreamInState(url, dataStream);
-      } else {
-        throw new Error('Ресурс не содержит валидный RSS');
-      }
+      const dataStream = parserRSS(response.data.contents);
+      addStreamInState(url, dataStream);
     })
     .catch((err) => {
       changeStatus(url, false, err.message);
