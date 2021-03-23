@@ -31,6 +31,7 @@ const addFeedPosts = (idFeed, postsList, posts) => {
 const sortIdFeeds = (feed1, feed2) => feed2.id - feed1.id;
 
 export const renderStreams = (state) => {
+  if (state.streams.length === 0) return;
   const feedsConteiner = document.querySelector('.feeds');
   feedsConteiner.innerHTML = '';
 
@@ -62,3 +63,4 @@ export const renderStreams = (state) => {
   postsConteiner.prepend(headingPosts);
 };
 //  https://meduza.io/rss2/all
+//  https://www.yahoo.com/news/rss

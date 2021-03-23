@@ -1,4 +1,5 @@
 const state = {
+  lastUpdatedDate: '',
   input: {
     url: '',
     valid: true,
