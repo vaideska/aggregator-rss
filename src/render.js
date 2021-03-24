@@ -19,11 +19,17 @@ export const renderFeedback = (input) => {
   document.querySelector('input').focus();
 };
 
+export const renderVisitedLink = (path, state) => {
+  const id = path.substring(path.indexOf('.') + 1, path.indexOf('.', path.indexOf('.') + 1));
+  document.getElementById(state.posts[id].id).setAttribute('class', 'fw-normal');
+};
+
 const addFeedPosts = (postsList, posts) => {
   posts.forEach((post) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
-    postElement.innerHTML = `<a href = "${post.data.link}" id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>`;
+    const classLink = post.visited === true ? 'fw-normal' : 'fw-bold';
+    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>`;
     postsList.prepend(postElement);
   });
 };
@@ -62,6 +68,12 @@ export const renderStreams = (state) => {
   feedsConteiner.prepend(headingFeeds);
   postsConteiner.prepend(postsList);
   postsConteiner.prepend(headingPosts);
+
+  /*  postsConteiner.addEventListener('click', (e) => {
+    console.log(e.target);
+    e.target.setAttribute('class', 'fw-normal');
+    console.log(e.target);
+  }); */
 };
 //  https://meduza.io/rss2/all
 //  https://www.yahoo.com/news/rss

@@ -1,7 +1,12 @@
 import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
-import { watchedStatus, watchedStateData, watchedProcess } from './view';
+import {
+  watchedStatus,
+  watchedStateData,
+  watchedProcess,
+  watchedVisitedLink,
+} from './view';
 import state from './model';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
@@ -61,6 +66,7 @@ const addPostsInState = (dataStream, idFeed) => {
     const post = {
       id: _.uniqueId(),
       idFeed,
+      visited: false,
       data: dataPost,
     };
     state.posts.push(post);
@@ -135,6 +141,16 @@ const updatePosts = () => {
 const app = () => {
   const form = document.querySelector('.rss-form');
   form.addEventListener('submit', controller);
+
+  const posts = document.querySelector('.posts');
+  posts.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') {
+      const postId = e.target.id;
+      watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
+      /*  e.target.setAttribute('class', 'fw-normal');
+      console.log(e.target);  */
+    }
+  });
 
   let delay = updateInterval;
   const cb = () => {
