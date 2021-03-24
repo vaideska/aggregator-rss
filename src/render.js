@@ -19,16 +19,16 @@ export const renderFeedback = (input) => {
   document.querySelector('input').focus();
 };
 
-const addFeedPosts = (idFeed, postsList, posts) => {
-  posts.filter((post) => post.idFeed === idFeed).forEach((post) => {
+const addFeedPosts = (postsList, posts) => {
+  posts.forEach((post) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
-    postElement.innerHTML = `<a href = "${post.data.link}" class="font-weight-bold" id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>`;
-    postsList.append(postElement);
+    postElement.innerHTML = `<a href = "${post.data.link}" id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>`;
+    postsList.prepend(postElement);
   });
 };
 
-const sortIdFeeds = (feed1, feed2) => feed2.id - feed1.id;
+//  const sortIdFeeds = (feed1, feed2) => feed2.id - feed1.id;
 
 export const renderStreams = (state) => {
   if (state.streams.length === 0) return;
@@ -50,13 +50,14 @@ export const renderStreams = (state) => {
   const postsList = document.createElement('ul');
   postsList.setAttribute('class', 'list-group mb-5');
 
-  state.feeds.sort(sortIdFeeds).forEach((feed) => {
+  state.feeds.forEach((feed) => {
     const feedElement = document.createElement('li');
     feedElement.setAttribute('class', 'list-group-item');
     feedElement.innerHTML = `<h3>${feed.data.title}</h3><p>${feed.data.description}</p>`;
     feedsList.append(feedElement);
-    addFeedPosts(feed.id, postsList, state.posts);
   });
+  addFeedPosts(postsList, state.posts);
+
   feedsConteiner.prepend(feedsList);
   feedsConteiner.prepend(headingFeeds);
   postsConteiner.prepend(postsList);

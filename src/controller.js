@@ -44,20 +44,26 @@ const isPostInState = (link, idFeed) => state.posts.filter(
 
 const addPostsInState = (dataStream, idFeed) => {
   const itemElements = dataStream.querySelectorAll('item');
+  //  console.log(Array.from(itemElements).reverse());
+  const newPosts = [];
   itemElements.forEach((itemElement) => {
     const link = itemElement.querySelector('link').textContent;
     if (!isPostInState(link, idFeed)) {
-      const post = {
-        id: _.uniqueId(),
-        idFeed,
-        data: {
-          title: itemElement.querySelector('title').textContent,
-          link,
-          description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
-        },
-      };
-      state.posts.push(post);
+      newPosts.push({
+        title: itemElement.querySelector('title').textContent,
+        link,
+        description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
+      });
     }
+  });
+
+  newPosts.reverse().forEach((dataPost) => {
+    const post = {
+      id: _.uniqueId(),
+      idFeed,
+      data: dataPost,
+    };
+    state.posts.push(post);
   });
 };
 
@@ -68,7 +74,7 @@ const addStreamInState = (url, dataStream) => {
 
   const channelElement = dataStream.querySelector('channel');
   const idFeed = _.uniqueId();
-  state.feeds.push({
+  state.feeds.unshift({
     id: idFeed,
     idStream,
     data: {
@@ -78,9 +84,6 @@ const addStreamInState = (url, dataStream) => {
   });
 
   addPostsInState(dataStream, idFeed);
-
-  watchedStateData.lastUpdatedDate = new Date();
-  changeStatus('', true);
 };
 
 const controller = (element) => {
@@ -105,6 +108,8 @@ const controller = (element) => {
     .then((response) => {
       const dataStream = parserRSS(response.data.contents);
       addStreamInState(url, dataStream);
+      watchedStateData.lastUpdatedDate = new Date();
+      changeStatus('', true);
     })
     .catch((err) => {
       changeStatus(url, false, err.message);
