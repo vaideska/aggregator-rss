@@ -14,7 +14,13 @@ const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
 const updateInterval = 5000;
 const intervalError = 1000;
 
-const catUrl = (url) => url.substring(url.indexOf('//', 0));
+const catUrl = (url) => {
+  const catHttp = url.substring(url.indexOf('//', 0) + 2);
+  if (catHttp.substring(0, 4) === 'www.') {
+    return catHttp.substring(4);
+  }
+  return catHttp;
+};
 
 const isUrlInState = (url) => state.streams.filter(
   (stream) => catUrl(stream.url) === catUrl(url),
@@ -54,7 +60,7 @@ const addPostsInState = (dataStream, idFeed) => {
   itemElements.forEach((itemElement) => {
     const link = itemElement.querySelector('link').textContent;
     const postData = {
-      title: itemElement.querySelector('title').textContent,
+      title: itemElement.querySelector('title') === null ? 'Без названия' : itemElement.querySelector('title').textContent,
       link,
       description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
     };
@@ -88,7 +94,7 @@ const addStreamInState = (url, dataStream) => {
     id: idFeed,
     idStream,
     data: {
-      title: channelElement.querySelector('title').textContent,
+      title: channelElement.querySelector('title') === null ? 'Без названия' : channelElement.querySelector('title').textContent,
       description: channelElement.querySelector('description') === null ? '' : channelElement.querySelector('description').textContent,
     },
   });

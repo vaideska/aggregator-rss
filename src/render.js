@@ -80,3 +80,4 @@ export const renderStreams = (state) => {
 };
 //  https://meduza.io/rss2/all
 //  https://www.yahoo.com/news/rss
+//  https://www.sports.ru/tribuna/blogs/utkin/rss.xml
