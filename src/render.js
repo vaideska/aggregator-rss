@@ -1,27 +1,37 @@
 export const renderBlockForm = (input) => {
   if (input.url !== '' && input.valid) {
     document.querySelector('input').setAttribute('disabled', 'disabled');
-    document.querySelector('button').setAttribute('disabled', 'disabled');
+    document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
   } else {
     document.querySelector('input').removeAttribute('disabled', 'disabled');
-    document.querySelector('button').removeAttribute('disabled', 'disabled');
+    document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
   }
 };
 
 export const renderFeedback = (input) => {
+  const feedbackElement = document.querySelector('.feedback');
   if (input.valid) {
-    document.querySelector('.feedback').textContent = 'RSS успешно загружен';
+    feedbackElement.classList.add('text-success');
+    feedbackElement.textContent = 'RSS успешно загружен';
     document.querySelector('form').reset();
   } else {
-    document.querySelector('.feedback').textContent = input.errorMsg;
+    feedbackElement.classList.add('text-danger');
+    feedbackElement.textContent = input.errorMsg;
   }
   renderBlockForm(input);
   document.querySelector('input').focus();
 };
 
 export const renderVisitedLink = (path, state) => {
-  const id = path.substring(path.indexOf('.') + 1, path.indexOf('.', path.indexOf('.') + 1));
-  document.getElementById(state.posts[id].id).setAttribute('class', 'fw-normal');
+  const id = path.replace(/\D+/g, '');
+  document.querySelector(`a[data-id="${state.posts[id].id}"]`).setAttribute('class', 'fw-normal');
+};
+
+export const renderOpenModal = (state, idPost) => {
+  const dataPost = state.posts.filter((post) => post.id === idPost)[0].data;
+  document.querySelector('.modal-title').textContent = dataPost.title;
+  document.querySelector('.modal-body').textContent = dataPost.description;
+  document.querySelector('.full-article').setAttribute('href', dataPost.link);
 };
 
 const addFeedPosts = (postsList, posts) => {
@@ -29,12 +39,11 @@ const addFeedPosts = (postsList, posts) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
     const classLink = post.visited === true ? 'fw-normal' : 'fw-bold';
-    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>`;
+    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>
+    <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">Просмотр</button>`;
     postsList.prepend(postElement);
   });
 };
-
-//  const sortIdFeeds = (feed1, feed2) => feed2.id - feed1.id;
 
 export const renderStreams = (state) => {
   if (state.streams.length === 0) return;
@@ -68,12 +77,6 @@ export const renderStreams = (state) => {
   feedsConteiner.prepend(headingFeeds);
   postsConteiner.prepend(postsList);
   postsConteiner.prepend(headingPosts);
-
-  /*  postsConteiner.addEventListener('click', (e) => {
-    console.log(e.target);
-    e.target.setAttribute('class', 'fw-normal');
-    console.log(e.target);
-  }); */
 };
 //  https://meduza.io/rss2/all
 //  https://www.yahoo.com/news/rss

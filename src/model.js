@@ -1,5 +1,6 @@
 const state = {
   lastUpdatedDate: '',
+  modalPostId: '',
   input: {
     url: '',
     valid: true,

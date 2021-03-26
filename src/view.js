@@ -4,6 +4,7 @@ import {
   renderStreams,
   renderBlockForm,
   renderVisitedLink,
+  renderOpenModal,
 } from './render';
 import state from './model';
 
@@ -21,4 +22,8 @@ export const watchedStateData = onChange(state, () => {
 
 export const watchedVisitedLink = onChange(state, (path) => {
   renderVisitedLink(path, state);
+});
+
+export const watchedOpenModal = onChange(state, (path, value) => {
+  renderOpenModal(state, value);
 });

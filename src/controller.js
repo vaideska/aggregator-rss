@@ -6,6 +6,7 @@ import {
   watchedStateData,
   watchedProcess,
   watchedVisitedLink,
+  watchedOpenModal,
 } from './view';
 import state from './model';
 
@@ -43,22 +44,25 @@ const changeStatus = (url, valid, errorMsg = '') => {
   };
 };
 
-const isPostInState = (link, idFeed) => state.posts.filter(
+const postInState = (link, idFeed) => state.posts.filter(
   (post) => post.idFeed === idFeed && post.data.link === link,
-).length > 0;
+);
 
 const addPostsInState = (dataStream, idFeed) => {
   const itemElements = dataStream.querySelectorAll('item');
-  //  console.log(Array.from(itemElements).reverse());
   const newPosts = [];
   itemElements.forEach((itemElement) => {
     const link = itemElement.querySelector('link').textContent;
-    if (!isPostInState(link, idFeed)) {
-      newPosts.push({
-        title: itemElement.querySelector('title').textContent,
-        link,
-        description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
-      });
+    const postData = {
+      title: itemElement.querySelector('title').textContent,
+      link,
+      description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
+    };
+    const oldPost = postInState(link, idFeed)[0];
+    if (oldPost !== undefined) {
+      oldPost.data = postData;
+    } else {
+      newPosts.push(postData);
     }
   });
 
@@ -138,19 +142,23 @@ const updatePosts = () => {
   return Promise.all(promises);
 };
 
+const updateVsitedLink = (e) => {
+  const postId = e.target.dataset.id;
+  if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+    watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
+  }
+  if (e.target.tagName === 'BUTTON') {
+    watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
+    watchedOpenModal.modalPostId = postId;
+  }
+};
+
 const app = () => {
   const form = document.querySelector('.rss-form');
   form.addEventListener('submit', controller);
 
   const posts = document.querySelector('.posts');
-  posts.addEventListener('click', (e) => {
-    if (e.target.tagName === 'A') {
-      const postId = e.target.id;
-      watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
-      /*  e.target.setAttribute('class', 'fw-normal');
-      console.log(e.target);  */
-    }
-  });
+  posts.addEventListener('click', updateVsitedLink);
 
   let delay = updateInterval;
   const cb = () => {

@@ -6,3 +6,11 @@ a:hover,
 a:focus {
   text-decoration: underline;
 }
+
+.text-danger {
+  color: #dc3545
+}
+
+.text-success {
+  color: #dc3545
+}
