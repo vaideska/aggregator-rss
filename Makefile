@@ -15,6 +15,10 @@ develop:
 	rm -rf dist
 	NODE_ENV=development npx webpack
 
+build:
+	rm -rf dist
+	NODE_ENV=production npx webpack
+
 publish:
 	npm publish --dry-run
 
