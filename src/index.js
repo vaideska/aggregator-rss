@@ -1,3 +1,3 @@
 import app from './controller';
 
-app();
+export default () => app();
