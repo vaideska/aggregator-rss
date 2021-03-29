@@ -5,14 +5,7 @@ import _ from 'lodash';
 
 import ru from './locales/ru';
 import en from './locales/en';
-
-import {
-  watchedStatus,
-  watchedStateData,
-  watchedProcess,
-  watchedVisitedLink,
-  watchedOpenModal,
-} from './view';
+import * as watcher from './view';
 import state from './model';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
@@ -49,7 +42,7 @@ const parserRSS = (data) => {
 };
 
 const changeStatus = (url, valid, errorMsg = '') => {
-  watchedStatus.input = {
+  watcher.watchedStatus.input = {
     url,
     valid,
     errorMsg,
@@ -113,7 +106,7 @@ const controller = (element) => {
   const formData = new FormData(element.target);
   const url = formData.get('url').trim();
 
-  watchedProcess.input = { url, valid: true, errorMsg: '' };
+  watcher.watchedProcess.input = { url, valid: true, errorMsg: '' };
 
   if (isUrlInState(url)) {
     changeStatus(url, false, i18next.t('feedbackMessage.alreadyExists'));
@@ -130,7 +123,7 @@ const controller = (element) => {
     .then((response) => {
       const dataStream = parserRSS(response.data.contents);
       addStreamInState(url, dataStream);
-      watchedStateData.lastUpdatedDate = new Date();
+      watcher.watchedStateData.lastUpdatedDate = new Date();
       changeStatus('', true);
     })
     .catch((err) => {
@@ -161,11 +154,11 @@ const updatePosts = () => {
 const updateVsitedLink = (e) => {
   const postId = e.target.dataset.id;
   if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
-    watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
+    watcher.watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
   }
   if (e.target.tagName === 'BUTTON') {
-    watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
-    watchedOpenModal.modalPostId = postId;
+    watcher.watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
+    watcher.watchedOpenModal.modalPostId = postId;
   }
 };
 
@@ -195,7 +188,7 @@ const app = () => {
       const cb = () => {
         updatePosts()
           .then(() => {
-            watchedStateData.lastUpdatedDate = new Date();
+            watcher.watchedStateData.lastUpdatedDate = new Date();
             delay = updateInterval;
             setTimeout(cb, delay);
           })

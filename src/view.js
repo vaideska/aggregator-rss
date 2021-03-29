@@ -1,29 +1,23 @@
 import onChange from 'on-change';
-import {
-  renderFeedback,
-  renderStreams,
-  renderBlockForm,
-  renderVisitedLink,
-  renderOpenModal,
-} from './render';
+import * as render from './render';
 import state from './model';
 
 export const watchedStatus = onChange(state, () => {
-  renderFeedback(state.input);
+  render.renderFeedback(state.input);
 });
 
 export const watchedProcess = onChange(state, () => {
-  renderBlockForm(state.input);
+  render.renderBlockForm(state.input);
 });
 
 export const watchedStateData = onChange(state, () => {
-  renderStreams(state);
+  render.renderStreams(state);
 });
 
 export const watchedVisitedLink = onChange(state, (path) => {
-  renderVisitedLink(path, state);
+  render.renderVisitedLink(path, state);
 });
 
 export const watchedOpenModal = onChange(state, (path, value) => {
-  renderOpenModal(state, value);
+  render.renderOpenModal(state, value);
 });
