@@ -124,6 +124,7 @@ const controller = (element) => {
       addStreamInState(url, dataStream);
       watcher.watchedStateData.lastUpdatedDate = new Date();
       changeStatus('', true);
+      console.log(state);
     })
     .catch((err) => {
       if (err.message === 'Network Error') {
@@ -131,6 +132,7 @@ const controller = (element) => {
       } else {
         changeStatus(url, false, err.message);
       }
+      console.log(err);
     });
 };
 
