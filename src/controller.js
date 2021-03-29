@@ -113,11 +113,7 @@ const controller = (element) => {
   const formData = new FormData(element.target);
   const url = formData.get('url').trim();
 
-  watchedProcess.input = {
-    url,
-    valid: true,
-    errorMsg: '',
-  };
+  watchedProcess.input = { url, valid: true, errorMsg: '' };
 
   if (isUrlInState(url)) {
     changeStatus(url, false, i18next.t('feedbackMessage.alreadyExists'));
