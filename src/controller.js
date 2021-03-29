@@ -1,7 +1,3 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap';
-import './index.css';
-
 import * as yup from 'yup';
 import axios from 'axios';
 import i18next from 'i18next';
@@ -169,7 +165,7 @@ const updateVsitedLink = (e) => {
 const initLocalLanguage = () => {
   const languageUser = (navigator.language || navigator.userLanguage).substr(0, 2).toLowerCase();
   const languageInterface = _.includes(languages, languageUser) ? languageUser : 'en';
-  return i18next.init({
+  i18next.init({
     lng: languageInterface,
     debug: true,
     resources: {
@@ -180,30 +176,28 @@ const initLocalLanguage = () => {
 };
 
 const app = () => {
-  initLocalLanguage()
-    .then(() => {
-      const form = document.querySelector('.rss-form');
-      form.addEventListener('submit', controller);
+  initLocalLanguage();
+  const form = document.querySelector('.rss-form');
+  form.addEventListener('submit', controller);
 
-      const posts = document.querySelector('.posts');
-      posts.addEventListener('click', updateVsitedLink);
+  const posts = document.querySelector('.posts');
+  posts.addEventListener('click', updateVsitedLink);
 
-      let delay = updateInterval;
-      const cb = () => {
-        updatePosts()
-          .then(() => {
-            watcher.watchedStateData.lastUpdatedDate = new Date();
-            delay = updateInterval;
-            setTimeout(cb, delay);
-          })
-          .catch(() => {
-            delay += intervalError;
-            setTimeout(cb, delay);
-          });
-      };
+  let delay = updateInterval;
+  const cb = () => {
+    updatePosts()
+      .then(() => {
+        watcher.watchedStateData.lastUpdatedDate = new Date();
+        delay = updateInterval;
+        setTimeout(cb, delay);
+      })
+      .catch(() => {
+        delay += intervalError;
+        setTimeout(cb, delay);
+      });
+  };
 
-      setTimeout(cb, delay);
-    });
+  setTimeout(cb, delay);
 };
 
 export default app;
