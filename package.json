@@ -2,11 +2,13 @@
   "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "Educational project RSS aggregator",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
     "dev": "webpack --mode development",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "watch": "webpack --mode development --watch"
   },
   "repository": {
     "type": "git",
@@ -41,6 +43,7 @@
     "@popperjs/core": "^2.9.0",
     "axios": "^0.21.1",
     "bootstrap": "^5.0.0-beta2",
+    "i18next": "^20.1.0",
     "lodash": "^4.17.21",
     "on-change": "^2.2.3",
     "yup": "^0.32.9"

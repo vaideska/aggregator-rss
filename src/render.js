@@ -1,3 +1,5 @@
+import i18next from 'i18next';
+
 export const renderBlockForm = (input) => {
   if (input.url !== '' && input.valid) {
     document.querySelector('input').setAttribute('disabled', 'disabled');
@@ -12,7 +14,7 @@ export const renderFeedback = (input) => {
   const feedbackElement = document.querySelector('.feedback');
   if (input.valid) {
     feedbackElement.classList.add('text-success');
-    feedbackElement.textContent = 'RSS успешно загружен';
+    feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
     document.querySelector('form').reset();
   } else {
     feedbackElement.classList.add('text-danger');
@@ -40,7 +42,7 @@ const addFeedPosts = (postsList, posts) => {
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
     const classLink = post.visited === true ? 'fw-normal' : 'fw-bold';
     postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>
-    <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">Просмотр</button>`;
+    <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
   });
 };
@@ -54,10 +56,10 @@ export const renderStreams = (state) => {
   postsConteiner.innerHTML = '';
 
   const headingFeeds = document.createElement('h2');
-  headingFeeds.textContent = 'Фиды';
+  headingFeeds.textContent = i18next.t('feeds');
 
   const headingPosts = document.createElement('h2');
-  headingPosts.textContent = 'Посты';
+  headingPosts.textContent = i18next.t('posts');
 
   const feedsList = document.createElement('ul');
   feedsList.setAttribute('class', 'list-group mb-5');
