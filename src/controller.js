@@ -113,7 +113,11 @@ const controller = (element) => {
   const formData = new FormData(element.target);
   const url = formData.get('url').trim();
 
-  watchedProcess.input.url = url;
+  watchedProcess.input = {
+    url,
+    valid: true,
+    errorMsg: '',
+  };
 
   if (isUrlInState(url)) {
     changeStatus(url, false, i18next.t('feedbackMessage.alreadyExists'));
@@ -207,28 +211,6 @@ const app = () => {
 
       setTimeout(cb, delay);
     });
-
-  const form = document.querySelector('.rss-form');
-  form.addEventListener('submit', controller);
-
-  const posts = document.querySelector('.posts');
-  posts.addEventListener('click', updateVsitedLink);
-
-  let delay = updateInterval;
-  const cb = () => {
-    updatePosts()
-      .then(() => {
-        watchedStateData.lastUpdatedDate = new Date();
-        delay = updateInterval;
-        setTimeout(cb, delay);
-      })
-      .catch(() => {
-        delay += intervalError;
-        setTimeout(cb, delay);
-      });
-  };
-
-  setTimeout(cb, delay);
 };
 
 export default app;

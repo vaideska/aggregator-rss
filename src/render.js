@@ -13,10 +13,12 @@ export const renderBlockForm = (input) => {
 export const renderFeedback = (input) => {
   const feedbackElement = document.querySelector('.feedback');
   if (input.valid) {
+    feedbackElement.classList.remove('text-danger');
     feedbackElement.classList.add('text-success');
     feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
     document.querySelector('form').reset();
   } else {
+    feedbackElement.classList.remove('text-success');
     feedbackElement.classList.add('text-danger');
     feedbackElement.textContent = input.errorMsg;
   }
