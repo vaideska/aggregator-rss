@@ -3,15 +3,14 @@ import axios from 'axios';
 import i18next from 'i18next';
 import _ from 'lodash';
 
-import ru from './locales/ru';
-import en from './locales/en';
+import resources from './locales/index';
 import * as watcher from './view';
 import state from './model';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
 const updateInterval = 5000;
 const intervalError = 1000;
-const languages = ['en', 'ru'];
+//  const languages = ['en', 'ru'];
 
 const catUrl = (url) => {
   const catHttp = url.substring(url.indexOf('//', 0) + 2);
@@ -162,18 +161,13 @@ const updateVsitedLink = (e) => {
   }
 };
 
-const initLocalLanguage = () => {
-  const languageUser = (navigator.language || navigator.userLanguage).substr(0, 2).toLowerCase();
-  const languageInterface = _.includes(languages, languageUser) ? languageUser : 'en';
-  return i18next.init({
-    lng: languageInterface,
-    debug: false,
-    resources: {
-      ru,
-      en,
-    },
-  });
-};
+const initLocalLanguage = () => i18next.init({
+  lng: 'ru',
+  debug: false,
+  resources,
+});
+//  const languageUser = (navigator.language || navigator.userLanguage).substr(0, 2).toLowerCase();
+//  const languageInterface = _.includes(languages, languageUser) ? languageUser : 'en';
 
 const app = () => {
   initLocalLanguage()
