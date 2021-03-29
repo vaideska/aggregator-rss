@@ -167,7 +167,7 @@ const initLocalLanguage = () => {
   const languageInterface = _.includes(languages, languageUser) ? languageUser : 'en';
   i18next.init({
     lng: languageInterface,
-    debug: true,
+    debug: false,
     resources: {
       ru,
       en,
@@ -177,6 +177,7 @@ const initLocalLanguage = () => {
 
 const app = () => {
   initLocalLanguage();
+
   const form = document.querySelector('.rss-form');
   form.addEventListener('submit', controller);
 
