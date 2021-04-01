@@ -1,7 +1,5 @@
-import i18next from 'i18next';
-
-export const renderBlockForm = (input) => {
-  if (input.url !== '' && input.valid) {
+export const renderBlockForm = (status) => {
+  if (status === 'loading') {
     document.querySelector('input').setAttribute('disabled', 'disabled');
     document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
   } else {
@@ -10,7 +8,7 @@ export const renderBlockForm = (input) => {
   }
 };
 
-export const renderFeedback = (input) => {
+export const renderFeedback = (input, i18next) => {
   const feedbackElement = document.querySelector('.feedback');
   if (input.valid) {
     feedbackElement.classList.remove('text-danger');
@@ -20,9 +18,9 @@ export const renderFeedback = (input) => {
   } else {
     feedbackElement.classList.remove('text-success');
     feedbackElement.classList.add('text-danger');
-    feedbackElement.textContent = input.errorMsg;
+    feedbackElement.textContent = i18next.t(`feedbackMessage.${input.errorMsg}`);
   }
-  renderBlockForm(input);
+  //  renderBlockForm(input);
   document.querySelector('input').focus();
 };
 
@@ -38,18 +36,17 @@ export const renderOpenModal = (state, idPost) => {
   document.querySelector('.full-article').setAttribute('href', dataPost.link);
 };
 
-const addFeedPosts = (postsList, posts) => {
+const addFeedPosts = (postsList, posts, i18next) => {
   posts.forEach((post) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
     const classLink = post.visited === true ? 'fw-normal' : 'fw-bold';
-    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a>
-    <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
+    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
   });
 };
 
-export const renderStreams = (state) => {
+export const renderStreams = (state, i18next) => {
   if (state.streams.length === 0) return;
   const feedsConteiner = document.querySelector('.feeds');
   feedsConteiner.innerHTML = '';
@@ -75,7 +72,7 @@ export const renderStreams = (state) => {
     feedElement.innerHTML = `<h3>${feed.data.title}</h3><p>${feed.data.description}</p>`;
     feedsList.append(feedElement);
   });
-  addFeedPosts(postsList, state.posts);
+  addFeedPosts(postsList, state.posts, i18next);
 
   feedsConteiner.prepend(feedsList);
   feedsConteiner.prepend(headingFeeds);

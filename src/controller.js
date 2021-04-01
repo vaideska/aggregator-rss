@@ -1,11 +1,9 @@
+/* eslint-disable no-param-reassign */
 import * as yup from 'yup';
 import axios from 'axios';
-import i18next from 'i18next';
 import _ from 'lodash';
 
-import resources from './locales/index';
-import * as watcher from './view';
-import state from './model';
+import createWatcher from './view';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
 const updateInterval = 5000;
@@ -20,7 +18,7 @@ const catUrl = (url) => {
   return catHttp;
 };
 
-const isUrlInState = (url) => state.streams.filter(
+const isUrlInState = (url, state) => state.streams.filter(
   (stream) => catUrl(stream.url) === catUrl(url),
 ).length > 0;
 
@@ -35,34 +33,34 @@ const parserRSS = (data) => {
   const parser = new DOMParser();
   const parserData = parser.parseFromString(data, 'application/xml');
   if (parserData.querySelector('parsererror') !== null) {
-    throw new Error(i18next.t('feedbackMessage.notValidRss'));
+    throw new Error('notValidRss');
   }
   return parserData;
 };
 
-const changeStatus = (url, valid, errorMsg = '') => {
+/*  const changeStatus = (url, valid, errorMsg = '') => {
   watcher.watchedStatus.input = {
     url,
     valid,
     errorMsg,
   };
-};
+};  */
 
-const postInState = (link, idFeed) => state.posts.filter(
+const postInState = (link, idFeed, state) => state.posts.filter(
   (post) => post.idFeed === idFeed && post.data.link === link,
 );
 
-const addPostsInState = (dataStream, idFeed) => {
+const addPostsInState = (dataStream, idFeed, watchedState, state) => {
   const itemElements = dataStream.querySelectorAll('item');
   const newPosts = [];
   itemElements.forEach((itemElement) => {
     const link = itemElement.querySelector('link').textContent;
     const postData = {
-      title: itemElement.querySelector('title') === null ? i18next.t('emptyTitle') : itemElement.querySelector('title').textContent,
+      title: itemElement.querySelector('title') === null ? 'emptyTitle' : itemElement.querySelector('title').textContent,
       link,
       description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
     };
-    const oldPost = postInState(link, idFeed)[0];
+    const oldPost = postInState(link, idFeed, state)[0];
     if (oldPost !== undefined) {
       oldPost.data = postData;
     } else {
@@ -77,66 +75,73 @@ const addPostsInState = (dataStream, idFeed) => {
       visited: false,
       data: dataPost,
     };
-    state.posts.push(post);
+    watchedState.posts.push(post);
   });
 };
 
-const addStreamInState = (url, dataStream) => {
+const addStreamInState = (url, dataStream, watchedState, state) => {
   const idStream = _.uniqueId();
   const stream = { url, id: idStream };
-  state.streams.push(stream);
+  watchedState.streams.push(stream);
 
   const channelElement = dataStream.querySelector('channel');
   const idFeed = _.uniqueId();
-  state.feeds.unshift({
+  watchedState.feeds.unshift({
     id: idFeed,
     idStream,
     data: {
-      title: channelElement.querySelector('title') === null ? i18next.t('emptyTitle') : channelElement.querySelector('title').textContent,
+      title: channelElement.querySelector('title') === null ? 'emptyTitle' : channelElement.querySelector('title').textContent,
       description: channelElement.querySelector('description') === null ? '' : channelElement.querySelector('description').textContent,
     },
   });
 
-  addPostsInState(dataStream, idFeed);
+  addPostsInState(dataStream, idFeed, watchedState, state);
 };
 
-const controller = (element) => {
-  element.preventDefault();
-  const formData = new FormData(element.target);
-  const url = formData.get('url').trim();
+const createListenerForm = (watchedState, state) => {
+  const addStream = (element) => {
+    element.preventDefault();
+    const formData = new FormData(element.target);
+    const url = formData.get('url').trim();
 
-  watcher.watchedProcess.input = { url, valid: true, errorMsg: '' };
+    watchedState.status = 'loading';
 
-  if (isUrlInState(url)) {
-    changeStatus(url, false, i18next.t('feedbackMessage.alreadyExists'));
-    return;
-  }
+    if (isUrlInState(url, state)) {
+      watchedState.input = { url, valid: false, errorMsg: 'alreadyExists' };
+      watchedState.status = 'error';
+      return;
+    }
 
-  isValid(url)
-    .then((valid) => {
-      if (!valid) {
-        throw new Error(i18next.t('feedbackMessage.validURL'));
-      }
-      return downloadStream(url);
-    })
-    .then((response) => {
-      const dataStream = parserRSS(response.data.contents);
-      addStreamInState(url, dataStream);
-      watcher.watchedStateData.lastUpdatedDate = new Date();
-      changeStatus('', true);
-      console.log(state);
-    })
-    .catch((err) => {
-      if (err.message === 'Network Error') {
-        changeStatus(url, false, i18next.t('feedbackMessage.networkError'));
-      } else {
-        changeStatus(url, false, err.message);
-      }
-      console.log(err);
-    });
+    isValid(url)
+      .then((valid) => {
+        if (!valid) {
+          throw new Error('validURL');
+        }
+        return downloadStream(url);
+      })
+      .then((response) => {
+        const dataStream = parserRSS(response.data.contents);
+        addStreamInState(url, dataStream, watchedState, state);
+        watchedState.lastUpdatedDate = new Date();
+        watchedState.input = { url: '', valid: true, errorMsg: '' };
+        watchedState.status = 'success';
+      })
+      .catch((err) => {
+        if (err.message === 'Network Error') {
+          watchedState.input = { url, valid: false, errorMsg: 'networkError' };
+          watchedState.status = 'error';
+        } else {
+          watchedState.input = { url, valid: false, errorMsg: err.message };
+          watchedState.status = 'error';
+        }
+      });
+  };
+
+  const form = document.querySelector('.rss-form');
+  form.addEventListener('submit', addStream);
 };
 
-const updatePosts = () => {
+const updatePosts = (state) => {
   const promises = state.feeds.map((feed) => {
     const streamObj = state.streams.filter((stream) => stream.id === feed.idStream);
     const urlSream = streamObj[0].url;
@@ -146,56 +151,49 @@ const updatePosts = () => {
         addPostsInState(dataStream, feed.id);
       })
       .catch(() => {
-        throw i18next.t('feedbackMessage.unknownError');
+        throw new Error('unknownError');
       });
   });
   return Promise.all(promises);
 };
 
-const updateVsitedLink = (e) => {
-  const postId = e.target.dataset.id;
-  if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
-    watcher.watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
-  }
-  if (e.target.tagName === 'BUTTON') {
-    watcher.watchedVisitedLink.posts.filter((post) => post.id === postId)[0].visited = true;
-    watcher.watchedOpenModal.modalPostId = postId;
-  }
+const createListenerClickLink = (watchedState) => {
+  const updateVsitedLink = (e) => {
+    const postId = e.target.dataset.id;
+    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+      watchedState.posts.filter((post) => post.id === postId)[0].visited = true;
+    }
+    if (e.target.tagName === 'BUTTON') {
+      watchedState.posts.filter((post) => post.id === postId)[0].visited = true;
+      watchedState.modalPostId = postId;
+    }
+  };
+
+  const posts = document.querySelector('.posts');
+  posts.addEventListener('click', updateVsitedLink);
 };
 
-const initLocalLanguage = () => i18next.init({
-  lng: 'ru',
-  debug: false,
-  resources,
-});
-//  const languageUser = (navigator.language || navigator.userLanguage).substr(0, 2).toLowerCase();
-//  const languageInterface = _.includes(languages, languageUser) ? languageUser : 'en';
+const runApp = (state, i18next) => {
+  const watchedState = createWatcher(state, i18next);
 
-const app = () => {
-  initLocalLanguage()
-    .then(() => {
-      const form = document.querySelector('.rss-form');
-      form.addEventListener('submit', controller);
+  createListenerForm(watchedState, state);
+  createListenerClickLink(watchedState, state);
 
-      const posts = document.querySelector('.posts');
-      posts.addEventListener('click', updateVsitedLink);
+  let delay = updateInterval;
+  const cb = () => {
+    updatePosts(state)
+      .then(() => {
+        watchedState.lastUpdatedDate = new Date();
+        delay = updateInterval;
+        setTimeout(cb, delay);
+      })
+      .catch(() => {
+        delay += intervalError;
+        setTimeout(cb, delay);
+      });
+  };
 
-      let delay = updateInterval;
-      const cb = () => {
-        updatePosts()
-          .then(() => {
-            watcher.watchedStateData.lastUpdatedDate = new Date();
-            delay = updateInterval;
-            setTimeout(cb, delay);
-          })
-          .catch(() => {
-            delay += intervalError;
-            setTimeout(cb, delay);
-          });
-      };
-
-      setTimeout(cb, delay);
-    });
+  setTimeout(cb, delay);
 };
 
-export default app;
+export default runApp;

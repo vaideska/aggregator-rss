@@ -2,7 +2,7 @@
   "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "Educational project RSS aggregator",
-  "main": "src/index.js",
+  "main": "src/init.js",
   "scripts": {
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
     "dev": "webpack --mode development",

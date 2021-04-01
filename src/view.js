@@ -1,8 +1,25 @@
 import onChange from 'on-change';
 import * as render from './render';
-import state from './model';
 
-export const watchedStatus = onChange(state, () => {
+export default (state, i18next) => onChange(state, (path, value) => {
+  if (path === 'input') {
+    render.renderFeedback(state.input, i18next);
+  }
+  if (path === 'lastUpdatedDate') {
+    render.renderStreams(state, i18next);
+  }
+  if (path.substr(-7) === 'visited') {
+    render.renderVisitedLink(path, state);
+  }
+  if (path === 'modalPostId') {
+    render.renderOpenModal(state, value);
+  }
+  if (path === 'status') {
+    render.renderBlockForm(value);
+  }
+});
+
+/*  export const watchedStatus = onChange(state, () => {
   render.renderFeedback(state.input);
 });
 
@@ -20,4 +37,4 @@ export const watchedVisitedLink = onChange(state, (path) => {
 
 export const watchedOpenModal = onChange(state, (path, value) => {
   render.renderOpenModal(state, value);
-});
+}); */
