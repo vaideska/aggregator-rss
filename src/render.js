@@ -23,7 +23,7 @@ export const renderFeedback = (input, i18next) => {
     feedbackElement.textContent = i18next.t(`feedbackMessage.${input.errorMsg}`);
   }
   document.querySelector('input').focus();
-  console.log('feedbackElement', feedbackElement);
+  console.log('feedbackElement', feedbackElement.textContent);
 };
 
 export const renderVisitedLink = (path, state) => {
