@@ -115,7 +115,6 @@ const createListenerForm = (watchedState, state) => {
         if (!valid) {
           throw new Error('validURL');
         }
-        console.log('url + proxy', `${proxy}${encodeURIComponent(url)}`);
         return downloadStream(url);
       })
       .then((response) => {
