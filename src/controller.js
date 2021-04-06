@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import createWatcher from './view';
 
-const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
+const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
 
 const catUrl = (url) => {
