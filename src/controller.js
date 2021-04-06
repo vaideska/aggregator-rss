@@ -7,8 +7,6 @@ import createWatcher from './view';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?url=';
 const updateInterval = 5000;
-const intervalError = 1000;
-//  const languages = ['en', 'ru'];
 
 const catUrl = (url) => {
   const catHttp = url.substring(url.indexOf('//', 0) + 2);
@@ -96,6 +94,7 @@ const addStreamInState = (url, dataStream, watchedState, state) => {
   });
 
   addPostsInState(dataStream, idFeed, watchedState, state);
+  console.log(state);
 };
 
 const createListenerForm = (watchedState, state) => {
@@ -129,11 +128,10 @@ const createListenerForm = (watchedState, state) => {
       .catch((err) => {
         if (err.message === 'Network Error') {
           watchedState.input = { url, valid: false, errorMsg: 'networkError' };
-          watchedState.status = 'error';
         } else {
           watchedState.input = { url, valid: false, errorMsg: err.message };
-          watchedState.status = 'error';
         }
+        watchedState.status = 'error';
       });
   };
 
@@ -148,7 +146,7 @@ const updatePosts = (state) => {
     return downloadStream(urlSream)
       .then((response) => {
         const dataStream = parserRSS(response.data.contents);
-        addPostsInState(dataStream, feed.id);
+        addPostsInState(dataStream, feed.id, state, state);
       })
       .catch(() => {
         throw new Error('unknownError');
@@ -179,21 +177,18 @@ const runApp = (state, i18next) => {
   createListenerForm(watchedState, state);
   createListenerClickLink(watchedState, state);
 
-  let delay = updateInterval;
   const cb = () => {
     updatePosts(state)
       .then(() => {
         watchedState.lastUpdatedDate = new Date();
-        delay = updateInterval;
-        setTimeout(cb, delay);
+        setTimeout(cb, updateInterval);
       })
       .catch(() => {
-        delay += intervalError;
-        setTimeout(cb, delay);
+        setTimeout(cb, updateInterval);
       });
   };
 
-  setTimeout(cb, delay);
+  setTimeout(cb, updateInterval);
 };
 
 export default runApp;

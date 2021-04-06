@@ -12,29 +12,9 @@ export default (state, i18next) => onChange(state, (path, value) => {
     render.renderVisitedLink(path, state);
   }
   if (path === 'modalPostId') {
-    render.renderOpenModal(state, value);
+    render.renderOpenModal(state, value, i18next);
   }
   if (path === 'status') {
     render.renderBlockForm(value);
   }
 });
-
-/*  export const watchedStatus = onChange(state, () => {
-  render.renderFeedback(state.input);
-});
-
-export const watchedProcess = onChange(state, () => {
-  render.renderBlockForm(state.input);
-});
-
-export const watchedStateData = onChange(state, () => {
-  render.renderStreams(state);
-});
-
-export const watchedVisitedLink = onChange(state, (path) => {
-  render.renderVisitedLink(path, state);
-});
-
-export const watchedOpenModal = onChange(state, (path, value) => {
-  render.renderOpenModal(state, value);
-}); */

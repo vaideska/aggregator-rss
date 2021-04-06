@@ -1,3 +1,5 @@
+const getTitle = (title, i18next) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
+
 export const renderBlockForm = (status) => {
   if (status === 'loading') {
     document.querySelector('input').setAttribute('disabled', 'disabled');
@@ -20,8 +22,8 @@ export const renderFeedback = (input, i18next) => {
     feedbackElement.classList.add('text-danger');
     feedbackElement.textContent = i18next.t(`feedbackMessage.${input.errorMsg}`);
   }
-  //  renderBlockForm(input);
   document.querySelector('input').focus();
+  console.log('feedbackElement', feedbackElement);
 };
 
 export const renderVisitedLink = (path, state) => {
@@ -29,9 +31,10 @@ export const renderVisitedLink = (path, state) => {
   document.querySelector(`a[data-id="${state.posts[id].id}"]`).setAttribute('class', 'fw-normal');
 };
 
-export const renderOpenModal = (state, idPost) => {
+export const renderOpenModal = (state, idPost, i18next) => {
   const dataPost = state.posts.filter((post) => post.id === idPost)[0].data;
-  document.querySelector('.modal-title').textContent = dataPost.title;
+  const title = getTitle(dataPost.title, i18next);
+  document.querySelector('.modal-title').textContent = title;
   document.querySelector('.modal-body').textContent = dataPost.description;
   document.querySelector('.full-article').setAttribute('href', dataPost.link);
 };
@@ -41,7 +44,8 @@ const addFeedPosts = (postsList, posts, i18next) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
     const classLink = post.visited === true ? 'fw-normal' : 'fw-bold';
-    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${post.data.title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
+    const title = getTitle(post.data.title, i18next);
+    postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
   });
 };
@@ -69,7 +73,8 @@ export const renderStreams = (state, i18next) => {
   state.feeds.forEach((feed) => {
     const feedElement = document.createElement('li');
     feedElement.setAttribute('class', 'list-group-item');
-    feedElement.innerHTML = `<h3>${feed.data.title}</h3><p>${feed.data.description}</p>`;
+    const title = getTitle(feed.data.title, i18next);
+    feedElement.innerHTML = `<h3>${title}</h3><p>${feed.data.description}</p>`;
     feedsList.append(feedElement);
   });
   addFeedPosts(postsList, state.posts, i18next);
