@@ -78,7 +78,6 @@ const addPostsInState = (dataStream, idFeed, watchedState, state) => {
 };
 
 const addStreamInState = (url, dataStream, watchedState, state) => {
-  console.log('addStreamInState', state);
   const idStream = _.uniqueId();
   const stream = { url, id: idStream };
   watchedState.streams.push(stream);
@@ -95,7 +94,6 @@ const addStreamInState = (url, dataStream, watchedState, state) => {
   });
 
   addPostsInState(dataStream, idFeed, watchedState, state);
-  console.log('addPostsInState', state);
 };
 
 const createListenerForm = (watchedState, state) => {
@@ -117,13 +115,11 @@ const createListenerForm = (watchedState, state) => {
         if (!valid) {
           throw new Error('validURL');
         }
-        console.log('isValid', url);
+        console.log('url + proxy', `${proxy}${encodeURIComponent(url)}`);
         return downloadStream(url);
       })
       .then((response) => {
-        console.log('downloadStream', response.data.contents);
         const dataStream = parserRSS(response.data.contents);
-        console.log('dataStream', dataStream);
         addStreamInState(url, dataStream, watchedState, state);
         watchedState.lastUpdatedDate = new Date();
         watchedState.input = { url: '', valid: true, errorMsg: '' };
