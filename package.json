@@ -4,7 +4,6 @@
   "description": "Educational project RSS aggregator",
   "main": "src/init.js",
   "scripts": {
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
     "dev": "webpack --mode development",
     "build": "webpack --mode production",
     "watch": "webpack --mode development --watch"
@@ -29,7 +28,6 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "html-webpack-plugin": "^5.1.0",
-    "jest": "^26.6.3",
     "postcss": "^8.2.7",
     "postcss-loader": "^5.0.0",
     "sass": "^1.32.8",
