@@ -9,7 +9,7 @@ export default {
       alreadyExists: 'RSS уже существует',
       validURL: 'Ссылка должна быть валидным URL',
       successMsg: 'RSS успешно загружен',
-      networkError: 'Сетевая ошибка',
+      networkError: 'Ошибка сети',
       unknownError: 'Неизвестная ошибка. Что-то пошло не так.',
     },
   },
