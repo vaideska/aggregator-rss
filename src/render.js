@@ -42,7 +42,7 @@ const addFeedPosts = (postsList, posts, i18next) => {
   posts.forEach((post) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
-    const classLink = post.visited === true ? 'fw-normal' : 'fw-bold';
+    const classLink = post.visited === true ? 'font-weight-normal' : 'font-weight-bold';
     const title = getTitle(post.data.title, i18next);
     postElement.innerHTML = `<a href = "${post.data.link}" class=${classLink} data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
