@@ -99,10 +99,9 @@ const addStreamInState = (url, dataStream, watchedState, state) => {
 const createListenerForm = (watchedState, state) => {
   const addStream = (element) => {
     element.preventDefault();
+    watchedState.status = 'loading';
     const formData = new FormData(element.target);
     const url = formData.get('url').trim();
-
-    watchedState.status = 'loading';
 
     if (isUrlInState(url, state)) {
       watchedState.input = { url, valid: false, errorMsg: 'alreadyExists' };

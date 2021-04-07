@@ -2,10 +2,10 @@ const getTitle = (title, i18next) => (title === 'emptyTitle' ? i18next.t('emptyT
 
 export const renderBlockForm = (status) => {
   if (status === 'loading') {
-    document.querySelector('input').setAttribute('disabled', 'disabled');
+    document.querySelector('input').setAttribute('readonly', '');
     document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
   } else {
-    document.querySelector('input').removeAttribute('disabled', 'disabled');
+    document.querySelector('input').removeAttribute('readonly', '');
     document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
   }
 };
