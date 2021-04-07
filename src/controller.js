@@ -125,7 +125,7 @@ const createListenerForm = (watchedState, state) => {
         watchedState.status = 'success';
       })
       .catch((err) => {
-        if (err.message === 'Network Error') {
+        if (err.message === 'Network Error' || err.message === 'no internet') {
           watchedState.input = { url, valid: false, errorMsg: 'networkError' };
         } else {
           watchedState.input = { url, valid: false, errorMsg: err.message };
