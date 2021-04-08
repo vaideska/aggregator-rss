@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
 
-import createWatcher from './view';
+import { createWatcher, createWatcherIUState } from './view';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
@@ -16,8 +16,8 @@ const catUrl = (url) => {
   return catHttp;
 };
 
-const isUrlInState = (url, state) => state.streams.filter(
-  (stream) => catUrl(stream.url) === catUrl(url),
+const isUrlInState = (url, state) => state.feeds.filter(
+  (feed) => catUrl(feed.url) === catUrl(url),
 ).length > 0;
 
 const isValid = (url) => {
@@ -48,7 +48,7 @@ const postInState = (link, idFeed, state) => state.posts.filter(
   (post) => post.idFeed === idFeed && post.data.link === link,
 );
 
-const addPostsInState = (dataStream, idFeed, watchedState, state) => {
+const addPostsInState = (dataStream, feedId, watchedState, watchedUIState) => {
   const itemElements = dataStream.querySelectorAll('item');
   const newPosts = [];
   itemElements.forEach((itemElement) => {
@@ -58,7 +58,7 @@ const addPostsInState = (dataStream, idFeed, watchedState, state) => {
       link,
       description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
     };
-    const oldPost = postInState(link, idFeed, state)[0];
+    const oldPost = postInState(link, feedId, watchedState)[0];
     if (oldPost !== undefined) {
       oldPost.data = postData;
     } else {
@@ -67,45 +67,43 @@ const addPostsInState = (dataStream, idFeed, watchedState, state) => {
   });
 
   newPosts.reverse().forEach((dataPost) => {
+    const id = _.uniqueId();
     const post = {
-      id: _.uniqueId(),
-      idFeed,
-      visited: false,
-      data: dataPost,
+      id,
+      feedId,
+      title: dataPost.title,
+      link: dataPost.link,
+      description: dataPost.description,
     };
     watchedState.posts.push(post);
+    watchedUIState.posts.push({ id, visited: false });
   });
 };
 
-const addStreamInState = (url, dataStream, watchedState, state) => {
-  const idStream = _.uniqueId();
-  const stream = { url, id: idStream };
-  watchedState.streams.push(stream);
-
+const addStreamInState = (url, dataStream, watchedState, watchedUIState) => {
   const channelElement = dataStream.querySelector('channel');
-  const idFeed = _.uniqueId();
+  const id = _.uniqueId();
   watchedState.feeds.unshift({
-    id: idFeed,
-    idStream,
-    data: {
-      title: channelElement.querySelector('title') === null ? 'emptyTitle' : channelElement.querySelector('title').textContent,
-      description: channelElement.querySelector('description') === null ? '' : channelElement.querySelector('description').textContent,
-    },
+    id,
+    url,
+    title: channelElement.querySelector('title') === null ? 'emptyTitle' : channelElement.querySelector('title').textContent,
+    description: channelElement.querySelector('description') === null ? '' : channelElement.querySelector('description').textContent,
   });
 
-  addPostsInState(dataStream, idFeed, watchedState, state);
+  addPostsInState(dataStream, id, watchedState, watchedUIState);
 };
 
-const createListenerForm = (watchedState, state) => {
+const createListenerForm = (watchedState, watchedUIState) => {
   const addStream = (element) => {
     element.preventDefault();
-    watchedState.status = 'loading';
+
+    watchedState.statusInputForm = 'loading';
     const formData = new FormData(element.target);
     const url = formData.get('url').trim();
 
-    if (isUrlInState(url, state)) {
-      watchedState.input = { url, valid: false, errorMsg: 'alreadyExists' };
-      watchedState.status = 'error';
+    if (isUrlInState(url, watchedState)) {
+      watchedState.errorMsgFeedback = 'alreadyExists';
+      watchedState.statusInputForm = 'error';
       return;
     }
 
@@ -118,18 +116,18 @@ const createListenerForm = (watchedState, state) => {
       })
       .then((response) => {
         const dataStream = parserRSS(response.data.contents);
-        addStreamInState(url, dataStream, watchedState, state);
+        addStreamInState(url, dataStream, watchedState, watchedUIState);
         watchedState.lastUpdatedDate = new Date();
-        watchedState.input = { url: '', valid: true, errorMsg: '' };
-        watchedState.status = 'success';
+        watchedState.errorMsgFeedback = '';
+        watchedState.statusInputForm = 'success';
       })
       .catch((err) => {
         if (err.message === 'Network Error' || err.message === 'no internet') {
-          watchedState.input = { url, valid: false, errorMsg: 'networkError' };
+          watchedState.errorMsgFeedback = 'networkError';
         } else {
-          watchedState.input = { url, valid: false, errorMsg: err.message };
+          watchedState.errorMsgFeedback = err.message;
         }
-        watchedState.status = 'error';
+        watchedState.statusInputForm = 'error';
       });
   };
 
@@ -137,14 +135,13 @@ const createListenerForm = (watchedState, state) => {
   form.addEventListener('submit', addStream);
 };
 
-const updatePosts = (state) => {
-  const promises = state.feeds.map((feed) => {
-    const streamObj = state.streams.filter((stream) => stream.id === feed.idStream);
-    const urlSream = streamObj[0].url;
+const updatePosts = (watchedState, watchedUIState) => {
+  const promises = watchedState.feeds.map((feed) => {
+    const urlSream = feed.url;
     return downloadStream(urlSream)
       .then((response) => {
         const dataStream = parserRSS(response.data.contents);
-        addPostsInState(dataStream, feed.id, state, state);
+        addPostsInState(dataStream, feed.id, watchedState, watchedUIState);
       })
       .catch(() => {
         throw new Error('unknownError');
@@ -153,15 +150,15 @@ const updatePosts = (state) => {
   return Promise.all(promises);
 };
 
-const createListenerClickLink = (watchedState) => {
+const createListenerClickLink = (watchedUIState) => {
   const updateVsitedLink = (e) => {
     const postId = e.target.dataset.id;
     if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
-      watchedState.posts.filter((post) => post.id === postId)[0].visited = true;
+      watchedUIState.posts.filter((post) => post.id === postId)[0].visited = true;
     }
     if (e.target.tagName === 'BUTTON') {
-      watchedState.posts.filter((post) => post.id === postId)[0].visited = true;
-      watchedState.modalPostId = postId;
+      watchedUIState.posts.filter((post) => post.id === postId)[0].visited = true;
+      watchedUIState.modalPostId = postId;
     }
   };
 
@@ -169,14 +166,15 @@ const createListenerClickLink = (watchedState) => {
   posts.addEventListener('click', updateVsitedLink);
 };
 
-const runApp = (state, i18next) => {
-  const watchedState = createWatcher(state, i18next);
+const runApp = (initState, initUIState, i18next) => {
+  const watchedState = createWatcher(initState, i18next);
+  const watchedUIState = createWatcherIUState(initUIState, i18next);
 
-  createListenerForm(watchedState, state);
-  createListenerClickLink(watchedState, state);
+  createListenerForm(watchedState, watchedUIState);
+  createListenerClickLink(watchedUIState);
 
   const cb = () => {
-    updatePosts(state)
+    updatePosts(watchedState, watchedUIState)
       .then(() => {
         watchedState.lastUpdatedDate = new Date();
         setTimeout(cb, updateInterval);

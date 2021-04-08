@@ -1,18 +1,8 @@
 const getTitle = (title, i18next) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
 
-export const renderBlockForm = (status) => {
-  if (status === 'loading') {
-    document.querySelector('input').setAttribute('readonly', '');
-    document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
-  } else {
-    document.querySelector('input').removeAttribute('readonly', '');
-    document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
-  }
-};
-
-export const renderFeedback = (input, i18next) => {
+const renderFeedback = (errorMsgFeedback, i18next) => {
   const feedbackElement = document.querySelector('.feedback');
-  if (input.valid) {
+  if (errorMsgFeedback === '') {
     feedbackElement.classList.remove('text-danger');
     feedbackElement.classList.add('text-success');
     feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
@@ -20,9 +10,20 @@ export const renderFeedback = (input, i18next) => {
   } else {
     feedbackElement.classList.remove('text-success');
     feedbackElement.classList.add('text-danger');
-    feedbackElement.textContent = i18next.t(`feedbackMessage.${input.errorMsg}`);
+    feedbackElement.textContent = i18next.t(`feedbackMessage.${errorMsgFeedback}`);
   }
   document.querySelector('input').focus();
+};
+
+export const renderBlockForm = (status, errorMsgFeedback, i18next) => {
+  if (status === 'loading') {
+    document.querySelector('input').setAttribute('readonly', '');
+    document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
+  } else {
+    document.querySelector('input').removeAttribute('readonly', '');
+    document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
+    renderFeedback(errorMsgFeedback, i18next);
+  }
 };
 
 export const renderVisitedLink = (path, state) => {
@@ -30,8 +31,8 @@ export const renderVisitedLink = (path, state) => {
   document.querySelector(`a[data-id="${state.posts[id].id}"]`).setAttribute('class', 'fw-normal');
 };
 
-export const renderOpenModal = (state, idPost, i18next) => {
-  const dataPost = state.posts.filter((post) => post.id === idPost)[0].data;
+export const renderOpenModal = (state, postId, i18next) => {
+  const dataPost = state.posts.filter((post) => post.id === postId)[0];
   const title = getTitle(dataPost.title, i18next);
   document.querySelector('.modal-title').textContent = title;
   document.querySelector('.modal-body').textContent = dataPost.description;
@@ -43,14 +44,14 @@ const addFeedPosts = (postsList, posts, i18next) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
     const classLink = post.visited === true ? 'font-weight-normal fw-normal' : 'font-weight-bold fw-bold';
-    const title = getTitle(post.data.title, i18next);
-    postElement.innerHTML = `<a href = "${post.data.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
+    const title = getTitle(post.title, i18next);
+    postElement.innerHTML = `<a href = "${post.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
   });
 };
 
 export const renderStreams = (state, i18next) => {
-  if (state.streams.length === 0) return;
+  if (state.feeds.length === 0) return;
   const feedsConteiner = document.querySelector('.feeds');
   feedsConteiner.innerHTML = '';
 
@@ -72,8 +73,8 @@ export const renderStreams = (state, i18next) => {
   state.feeds.forEach((feed) => {
     const feedElement = document.createElement('li');
     feedElement.setAttribute('class', 'list-group-item');
-    const title = getTitle(feed.data.title, i18next);
-    feedElement.innerHTML = `<h3>${title}</h3><p>${feed.data.description}</p>`;
+    const title = getTitle(feed.title, i18next);
+    feedElement.innerHTML = `<h3>${title}</h3><p>${feed.description}</p>`;
     feedsList.append(feedElement);
   });
   addFeedPosts(postsList, state.posts, i18next);

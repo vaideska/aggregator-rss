@@ -11,6 +11,18 @@ export default () => {
     resources,
   }).then(() => {
     const state = {
+      statusInputForm: 'init',
+      errorMsgFeedback: '',
+      lastUpdatedDate: '',
+      feeds: [], // {id, url, title, description}
+      posts: [], // {feedId, id, title, link, description}
+    };
+
+    const uiState = {
+      modalPostId: '',
+      posts: [], //  {id, visited: false}
+    };
+    /*  const state = {
       lastUpdatedDate: '',
       status: 'init',
       modalPostId: '',
@@ -22,8 +34,8 @@ export default () => {
       streams: [], //  {url, id}
       feeds: [], //  {idStream, id, data: {title, description}}
       posts: [], // {idFeed, id, visited: false, data: {title, link, description}}
-    };
+    };  */
 
-    runApp(state, i18nextInstance);
+    runApp(state, uiState, i18nextInstance);
   });
 };
