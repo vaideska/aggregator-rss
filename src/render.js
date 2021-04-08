@@ -39,18 +39,20 @@ export const renderOpenModal = (state, postId, i18next) => {
   document.querySelector('.full-article').setAttribute('href', dataPost.link);
 };
 
-const addFeedPosts = (postsList, posts, i18next) => {
+const addFeedPosts = (postsList, posts, uiState, i18next) => {
   posts.forEach((post) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
-    const classLink = post.visited === true ? 'font-weight-normal fw-normal' : 'font-weight-bold fw-bold';
+    const visitedLink = uiState.posts.filter((postIU) => postIU.id === post.id)[0].visited;
+    console.log(uiState);
+    const classLink = visitedLink === true ? 'font-weight-normal fw-normal' : 'font-weight-bold fw-bold';
     const title = getTitle(post.title, i18next);
     postElement.innerHTML = `<a href = "${post.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
   });
 };
 
-export const renderStreams = (state, i18next) => {
+export const renderStreams = (state, uiState, i18next) => {
   if (state.feeds.length === 0) return;
   const feedsConteiner = document.querySelector('.feeds');
   feedsConteiner.innerHTML = '';
@@ -77,7 +79,7 @@ export const renderStreams = (state, i18next) => {
     feedElement.innerHTML = `<h3>${title}</h3><p>${feed.description}</p>`;
     feedsList.append(feedElement);
   });
-  addFeedPosts(postsList, state.posts, i18next);
+  addFeedPosts(postsList, state.posts, uiState, i18next);
 
   feedsConteiner.prepend(feedsList);
   feedsConteiner.prepend(headingFeeds);

@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
 
-import { createWatcher, createWatcherIUState } from './view';
+import { createWatcher, createWatcherIU } from './view';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
@@ -44,8 +44,8 @@ const parserRSS = (data) => {
   };
 };  */
 
-const postInState = (link, idFeed, state) => state.posts.filter(
-  (post) => post.idFeed === idFeed && post.data.link === link,
+const postInState = (link, feedId, state) => state.posts.filter(
+  (post) => post.feedId === feedId && post.link === link,
 );
 
 const addPostsInState = (dataStream, feedId, watchedState, watchedUIState) => {
@@ -167,8 +167,8 @@ const createListenerClickLink = (watchedUIState) => {
 };
 
 const runApp = (initState, initUIState, i18next) => {
-  const watchedState = createWatcher(initState, i18next);
-  const watchedUIState = createWatcherIUState(initUIState, i18next);
+  const watchedState = createWatcher(initState, initUIState, i18next);
+  const watchedUIState = createWatcherIU(initState, initUIState, i18next);
 
   createListenerForm(watchedState, watchedUIState);
   createListenerClickLink(watchedUIState);
