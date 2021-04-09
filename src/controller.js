@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import axios from 'axios';
 import _ from 'lodash';
 
-import { createWatcher, createWatcherIU } from './view';
+import { watcher, watcherIU } from './watchers';
 import parserRSS from './parser/parser';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
@@ -147,8 +147,8 @@ const runApp = (initState, initUIState, i18next) => {
     postsConteiner: document.querySelector('.posts'),
   };
 
-  const watchedState = createWatcher(initState, initUIState, i18next, elemDOM);
-  const watchedUIState = createWatcherIU(initState, initUIState, i18next);
+  const watchedState = watcher(initState, initUIState, i18next, elemDOM);
+  const watchedUIState = watcherIU(initState, initUIState, i18next);
 
   createListenerForm(watchedState, watchedUIState, elemDOM);
   createListenerClickLink(watchedUIState, elemDOM);

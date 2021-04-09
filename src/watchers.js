@@ -1,7 +1,7 @@
 import onChange from 'on-change';
 import * as render from './render';
 
-const createWatcher = (state, uiState, i18next, elemDOM) => onChange(state, (path, value) => {
+const watcher = (state, uiState, i18next, elemDOM) => onChange(state, (path, value) => {
   if (path === 'lastUpdatedDate') {
     render.renderStreams(state, uiState, i18next, elemDOM);
   }
@@ -10,7 +10,7 @@ const createWatcher = (state, uiState, i18next, elemDOM) => onChange(state, (pat
   }
 });
 
-const createWatcherIU = (state, uiState, i18next) => onChange(uiState, (path, value) => {
+const watcherIU = (state, uiState, i18next) => onChange(uiState, (path, value) => {
   if (path.substr(-7) === 'visited') {
     render.renderVisitedLink(path, uiState);
   }
@@ -19,4 +19,4 @@ const createWatcherIU = (state, uiState, i18next) => onChange(uiState, (path, va
   }
 });
 
-export { createWatcher, createWatcherIU };
+export { watcher, watcherIU };
