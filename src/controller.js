@@ -4,6 +4,7 @@ import axios from 'axios';
 import _ from 'lodash';
 
 import { createWatcher, createWatcherIU } from './view';
+import parserRSS from './parser/parser';
 
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
@@ -27,42 +28,18 @@ const isValid = (url) => {
 
 const downloadStream = (url) => axios.get(`${proxy}${encodeURIComponent(url)}`);
 
-const parserRSS = (data) => {
-  const parser = new DOMParser();
-  const parserData = parser.parseFromString(data, 'application/xml');
-  if (parserData.querySelector('parsererror') !== null) {
-    throw new Error('notValidRss');
-  }
-  return parserData;
-};
-
-/*  const changeStatus = (url, valid, errorMsg = '') => {
-  watcher.watchedStatus.input = {
-    url,
-    valid,
-    errorMsg,
-  };
-};  */
-
 const postInState = (link, feedId, state) => state.posts.filter(
   (post) => post.feedId === feedId && post.link === link,
 );
 
 const addPostsInState = (dataStream, feedId, watchedState, watchedUIState) => {
-  const itemElements = dataStream.querySelectorAll('item');
+  const dataPosts = dataStream.posts;
   const newPosts = [];
-  itemElements.forEach((itemElement) => {
-    const link = itemElement.querySelector('link').textContent;
-    const postData = {
-      title: itemElement.querySelector('title') === null ? 'emptyTitle' : itemElement.querySelector('title').textContent,
-      link,
-      description: itemElement.querySelector('description') === null ? '' : itemElement.querySelector('description').textContent,
-    };
+  dataPosts.forEach((dataPost) => {
+    const { link } = dataPost;
     const oldPost = postInState(link, feedId, watchedState)[0];
-    if (oldPost !== undefined) {
-      oldPost.data = postData;
-    } else {
-      newPosts.push(postData);
+    if (oldPost === undefined) {
+      newPosts.push(dataPost);
     }
   });
 
@@ -81,13 +58,12 @@ const addPostsInState = (dataStream, feedId, watchedState, watchedUIState) => {
 };
 
 const addStreamInState = (url, dataStream, watchedState, watchedUIState) => {
-  const channelElement = dataStream.querySelector('channel');
   const id = _.uniqueId();
   watchedState.feeds.unshift({
     id,
     url,
-    title: channelElement.querySelector('title') === null ? 'emptyTitle' : channelElement.querySelector('title').textContent,
-    description: channelElement.querySelector('description') === null ? '' : channelElement.querySelector('description').textContent,
+    title: dataStream.titleFeed,
+    description: dataStream.descriptionFeed,
   });
 
   addPostsInState(dataStream, id, watchedState, watchedUIState);
