@@ -69,7 +69,7 @@ const addStreamInState = (url, dataStream, watchedState, watchedUIState) => {
   addPostsInState(dataStream, id, watchedState, watchedUIState);
 };
 
-const createListenerForm = (watchedState, watchedUIState) => {
+const createListenerForm = (watchedState, watchedUIState, elemDOM) => {
   const addStream = (element) => {
     element.preventDefault();
 
@@ -107,8 +107,7 @@ const createListenerForm = (watchedState, watchedUIState) => {
       });
   };
 
-  const form = document.querySelector('.rss-form');
-  form.addEventListener('submit', addStream);
+  elemDOM.rssFormConteiner.addEventListener('submit', addStream);
 };
 
 const updatePosts = (watchedState, watchedUIState) => {
@@ -126,7 +125,7 @@ const updatePosts = (watchedState, watchedUIState) => {
   return Promise.all(promises);
 };
 
-const createListenerClickLink = (watchedUIState) => {
+const createListenerClickLink = (watchedUIState, elemDOM) => {
   const updateVsitedLink = (e) => {
     const postId = e.target.dataset.id;
     if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
@@ -138,16 +137,21 @@ const createListenerClickLink = (watchedUIState) => {
     }
   };
 
-  const posts = document.querySelector('.posts');
-  posts.addEventListener('click', updateVsitedLink);
+  elemDOM.postsConteiner.addEventListener('click', updateVsitedLink);
 };
 
 const runApp = (initState, initUIState, i18next) => {
-  const watchedState = createWatcher(initState, initUIState, i18next);
+  const elemDOM = {
+    rssFormConteiner: document.querySelector('.rss-form'),
+    feedsConteiner: document.querySelector('.feeds'),
+    postsConteiner: document.querySelector('.posts'),
+  };
+
+  const watchedState = createWatcher(initState, initUIState, i18next, elemDOM);
   const watchedUIState = createWatcherIU(initState, initUIState, i18next);
 
-  createListenerForm(watchedState, watchedUIState);
-  createListenerClickLink(watchedUIState);
+  createListenerForm(watchedState, watchedUIState, elemDOM);
+  createListenerClickLink(watchedUIState, elemDOM);
 
   const cb = () => {
     updatePosts(watchedState, watchedUIState)

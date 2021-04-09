@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 const getTitle = (title, i18next) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
 
 const renderFeedback = (errorMsgFeedback, i18next) => {
@@ -51,13 +52,11 @@ const addFeedPosts = (postsList, posts, uiState, i18next) => {
   });
 };
 
-export const renderStreams = (state, uiState, i18next) => {
+export const renderStreams = (state, uiState, i18next, elemDOM) => {
   if (state.feeds.length === 0) return;
-  const feedsConteiner = document.querySelector('.feeds');
-  feedsConteiner.innerHTML = '';
+  elemDOM.feedsConteiner.innerHTML = '';
 
-  const postsConteiner = document.querySelector('.posts');
-  postsConteiner.innerHTML = '';
+  elemDOM.postsConteiner.innerHTML = '';
 
   const headingFeeds = document.createElement('h2');
   headingFeeds.textContent = i18next.t('feeds');
@@ -80,10 +79,10 @@ export const renderStreams = (state, uiState, i18next) => {
   });
   addFeedPosts(postsList, state.posts, uiState, i18next);
 
-  feedsConteiner.prepend(feedsList);
-  feedsConteiner.prepend(headingFeeds);
-  postsConteiner.prepend(postsList);
-  postsConteiner.prepend(headingPosts);
+  elemDOM.feedsConteiner.prepend(feedsList);
+  elemDOM.feedsConteiner.prepend(headingFeeds);
+  elemDOM.postsConteiner.prepend(postsList);
+  elemDOM.postsConteiner.prepend(headingPosts);
 };
 //  https://meduza.io/rss2/all
 //  https://www.yahoo.com/news/rss
