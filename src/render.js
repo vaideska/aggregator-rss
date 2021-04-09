@@ -44,7 +44,7 @@ const addFeedPosts = (postsList, posts, uiState, i18next) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
     const visitedLink = uiState.posts.filter((postIU) => postIU.id === post.id)[0].visited;
-    const classLink = visitedLink === true ? 'font-weight-normal fw-normal' : 'font-weight-bold fw-bold';
+    const classLink = visitedLink === true ? 'font-weight-normal fw-normal text-decoration-none' : 'font-weight-bold fw-bold text-decoration-none';
     const title = getTitle(post.title, i18next);
     postElement.innerHTML = `<a href = "${post.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
     postsList.prepend(postElement);
