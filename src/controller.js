@@ -17,13 +17,14 @@ const catUrl = (url) => {
   return catHttp;
 };
 
-const isUrlInState = (url, state) => state.feeds.filter(
-  (feed) => catUrl(feed.url) === catUrl(url),
-).length > 0;
+const isUrlInState = (url, state) => {
+  const schema = yup.mixed().notOneOf(state.feeds.map((feed) => catUrl(feed.url)));
+  return !schema.isValidSync(catUrl(url));
+};
 
 const isValid = (url) => {
   const schema = yup.string().url();
-  return schema.isValid(url);
+  return schema.isValidSync(url);
 };
 
 const downloadStream = (url) => axios.get(`${proxy}${encodeURIComponent(url)}`);
@@ -83,13 +84,13 @@ const createListenerForm = (watchedState, watchedUIState, elemDOM) => {
       return;
     }
 
-    isValid(url)
-      .then((valid) => {
-        if (!valid) {
-          throw new Error('validURL');
-        }
-        return downloadStream(url);
-      })
+    if (!isValid(url)) {
+      watchedState.errorMsgFeedback = 'validURL';
+      watchedState.statusInputForm = 'error';
+      return;
+    }
+
+    downloadStream(url)
       .then((response) => {
         const dataStream = parserRSS(response.data.contents);
         addStreamInState(url, dataStream, watchedState, watchedUIState);
@@ -117,9 +118,6 @@ const updatePosts = (watchedState, watchedUIState) => {
       .then((response) => {
         const dataStream = parserRSS(response.data.contents);
         addPostsInState(dataStream, feed.id, watchedState, watchedUIState);
-      })
-      .catch(() => {
-        throw new Error('unknownError');
       });
   });
   return Promise.all(promises);
@@ -155,7 +153,7 @@ const runApp = (initState, initUIState, i18next) => {
 
   const cb = () => {
     updatePosts(watchedState, watchedUIState)
-      .then(() => {
+      .finally(() => {
         watchedState.lastUpdatedDate = new Date();
         setTimeout(cb, updateInterval);
       })
