@@ -39,7 +39,8 @@ const addStreamInState = (url, dataStream, watchedState) => {
     description: dataStream.descriptionFeed,
   });
 
-  dataStream.posts.reverse().forEach((dataPost) => {
+  const newPosts = [];
+  dataStream.posts.forEach((dataPost) => {
     const post = {
       id: _.uniqueId(),
       feedId,
@@ -47,8 +48,9 @@ const addStreamInState = (url, dataStream, watchedState) => {
       link: dataPost.link,
       description: dataPost.description,
     };
-    watchedState.posts.push(post);
+    newPosts.unshift(post);
   });
+  watchedState.posts.push(...newPosts);
 };
 
 const createListenerForm = (watchedState, elemDOM) => {
