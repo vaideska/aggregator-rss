@@ -3,9 +3,9 @@ import _ from 'lodash';
 
 const getTitle = (title, i18next) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
 
-const renderFeedback = (errorMsgFeedback, i18next) => {
+const renderFeedback = (state, i18next) => {
   const feedbackElement = document.querySelector('.feedback');
-  if (errorMsgFeedback === '') {
+  if (state.validURL) {
     feedbackElement.classList.remove('text-danger');
     feedbackElement.classList.add('text-success');
     feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
@@ -13,19 +13,19 @@ const renderFeedback = (errorMsgFeedback, i18next) => {
   } else {
     feedbackElement.classList.remove('text-success');
     feedbackElement.classList.add('text-danger');
-    feedbackElement.textContent = i18next.t(`feedbackMessage.${errorMsgFeedback}`);
+    feedbackElement.textContent = i18next.t(`feedbackMessage.${state.errorMsgFeedback}`);
   }
   document.querySelector('input').focus();
 };
 
-export const renderBlockForm = (status, errorMsgFeedback, i18next) => {
-  if (status === 'loading') {
+export const renderBlockForm = (state, i18next) => {
+  if (state.streamLoadingStatus === 'loading') {
     document.querySelector('input').setAttribute('readonly', '');
     document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
   } else {
     document.querySelector('input').removeAttribute('readonly', '');
     document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
-    renderFeedback(errorMsgFeedback, i18next);
+    renderFeedback(state, i18next);
   }
 };
 

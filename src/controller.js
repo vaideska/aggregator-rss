@@ -14,12 +14,6 @@ const getHostNameURL = (url) => {
   return urlObj.hostname;
 };
 
-/*  const isUrlInState = (url, state) => {
-  const schema = yup.mixed().notOneOf(state.feeds.map((feed) => getHostNameURL(feed.url)));
-  console.log(schema.validateSync(getHostNameURL(url)));
-  return schema.validateSync(getHostNameURL(url));
-};  */
-
 const validation = (url, state) => {
   const schemaURL = yup.string().url();
   const schemaNotOneOf = yup.mixed().notOneOf(state.feeds.map((feed) => getHostNameURL(feed.url)));
@@ -76,21 +70,16 @@ const createListenerForm = (watchedState, elemDOM) => {
   const addStream = (element) => {
     element.preventDefault();
 
-    watchedState.statusInputForm = 'loading';
+    watchedState.streamLoadingStatus = 'loading';
     const formData = new FormData(element.target);
     const url = formData.get('url').trim();
-
-    /*  if (isUrlInState(url, watchedState)) {
-      watchedState.errorMsgFeedback = 'alreadyExists';
-      watchedState.statusInputForm = 'error';
-      return;
-    } */
 
     const valid = validation(url, watchedState);
     if (valid !== true) {
       const alreadyExists = valid.match(/^this must not be one of/, '');
       watchedState.errorMsgFeedback = alreadyExists === null ? 'validURL' : 'alreadyExists';
-      watchedState.statusInputForm = 'error';
+      watchedState.validURL = false;
+      watchedState.streamLoadingStatus = 'error';
       return;
     }
 
@@ -100,7 +89,8 @@ const createListenerForm = (watchedState, elemDOM) => {
         addStreamInState(url, dataStream, watchedState);
         watchedState.lastUpdatedDate = new Date();
         watchedState.errorMsgFeedback = '';
-        watchedState.statusInputForm = 'success';
+        watchedState.validURL = true;
+        watchedState.streamLoadingStatus = 'success';
       })
       .catch((err) => {
         if (err.message === 'Network Error' || err.message === 'no internet') {
@@ -108,7 +98,7 @@ const createListenerForm = (watchedState, elemDOM) => {
         } else {
           watchedState.errorMsgFeedback = err.message;
         }
-        watchedState.statusInputForm = 'error';
+        watchedState.streamLoadingStatus = 'error';
       });
   };
 

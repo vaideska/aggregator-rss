@@ -5,8 +5,8 @@ export default (state, i18next, elemDOM) => onChange(state, (path, value) => {
   if (path === 'lastUpdatedDate') {
     render.renderStreams(state, i18next, elemDOM);
   }
-  if (path === 'statusInputForm') {
-    render.renderBlockForm(value, state.errorMsgFeedback, i18next);
+  if (path === 'streamLoadingStatus') {
+    render.renderBlockForm(state, i18next);
   }
   if (path === 'visitedPosts') {
     render.renderVisitedLink(value);

@@ -11,7 +11,8 @@ export default () => {
     resources,
   }).then(() => {
     const state = {
-      statusInputForm: 'init',
+      streamLoadingStatus: 'init',
+      validURL: '',
       errorMsgFeedback: '',
       lastUpdatedDate: '',
       feeds: [],
