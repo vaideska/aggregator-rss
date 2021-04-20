@@ -30,21 +30,18 @@ const postInState = (link, feedId, state) => state.posts.filter(
   (post) => post.feedId === feedId && post.link === link,
 );
 
-const addPostsInState = (dataStream, feedId, watchedState) => {
-  const dataPosts = dataStream.posts;
-  const newPosts = [];
-  dataPosts.forEach((dataPost) => {
-    const { link } = dataPost;
-    const oldPost = postInState(link, feedId, watchedState)[0];
-    if (oldPost === undefined) {
-      newPosts.push(dataPost);
-    }
+const addStreamInState = (url, dataStream, watchedState) => {
+  const feedId = _.uniqueId();
+  watchedState.feeds.unshift({
+    id: feedId,
+    url,
+    title: dataStream.titleFeed,
+    description: dataStream.descriptionFeed,
   });
 
-  newPosts.reverse().forEach((dataPost) => {
-    const id = _.uniqueId();
+  dataStream.posts.reverse().forEach((dataPost) => {
     const post = {
-      id,
+      id: _.uniqueId(),
       feedId,
       title: dataPost.title,
       link: dataPost.link,
@@ -52,18 +49,6 @@ const addPostsInState = (dataStream, feedId, watchedState) => {
     };
     watchedState.posts.push(post);
   });
-};
-
-const addStreamInState = (url, dataStream, watchedState) => {
-  const id = _.uniqueId();
-  watchedState.feeds.unshift({
-    id,
-    url,
-    title: dataStream.titleFeed,
-    description: dataStream.descriptionFeed,
-  });
-
-  addPostsInState(dataStream, id, watchedState);
 };
 
 const createListenerForm = (watchedState, elemDOM) => {
@@ -105,13 +90,31 @@ const createListenerForm = (watchedState, elemDOM) => {
   elemDOM.rssFormConteiner.addEventListener('submit', addStream);
 };
 
+const addNewPostsInState = (dataStream, feedId, watchedState) => {
+  const dataPosts = dataStream.posts;
+  dataPosts.forEach((dataPost) => {
+    const { link } = dataPost;
+    const oldPost = postInState(link, feedId, watchedState)[0];
+    if (oldPost === undefined) {
+      const post = {
+        id: _.uniqueId(),
+        feedId,
+        title: dataPost.title,
+        link,
+        description: dataPost.description,
+      };
+      watchedState.posts.push(post);
+    }
+  });
+};
+
 const updatePosts = (watchedState) => {
   const promises = watchedState.feeds.map((feed) => {
     const urlSream = feed.url;
     return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
       .then((response) => {
         const dataStream = parseRSS(response.data.contents);
-        addPostsInState(dataStream, feed.id, watchedState);
+        addNewPostsInState(dataStream, feed.id, watchedState);
       });
   });
   Promise.all(promises)
