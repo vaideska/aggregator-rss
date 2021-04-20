@@ -14,28 +14,13 @@ export default () => {
       statusInputForm: 'init',
       errorMsgFeedback: '',
       lastUpdatedDate: '',
-      feeds: [], // {id, url, title, description}
-      posts: [], // {feedId, id, title, link, description}
-    };
-
-    const uiState = {
-      modalPostId: '',
-      posts: [], //  {id, visited: false}
-    };
-    /*  const state = {
-      lastUpdatedDate: '',
-      status: 'init',
-      modalPostId: '',
-      input: {
-        url: '',
-        valid: true,
-        errorMsg: '',
+      feeds: [],
+      posts: [],
+      uiState: {
+        modalPostId: '',
+        visitedPosts: [],
       },
-      streams: [], //  {url, id}
-      feeds: [], //  {idStream, id, data: {title, description}}
-      posts: [], // {idFeed, id, visited: false, data: {title, link, description}}
-    };  */
-
-    runApp(state, uiState, i18nextInstance);
+    };
+    runApp(state, i18nextInstance);
   });
 };

@@ -1,4 +1,6 @@
 /* eslint-disable no-param-reassign */
+import _ from 'lodash';
+
 const getTitle = (title, i18next) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
 
 const renderFeedback = (errorMsgFeedback, i18next) => {
@@ -27,9 +29,8 @@ export const renderBlockForm = (status, errorMsgFeedback, i18next) => {
   }
 };
 
-export const renderVisitedLink = (path, state) => {
-  const id = path.replace(/\D+/g, '');
-  document.querySelector(`a[data-id="${state.posts[id].id}"]`).setAttribute('class', 'fw-normal');
+export const renderVisitedLink = (id) => {
+  document.querySelector(`a[data-id="${id}"]`).setAttribute('class', 'fw-normal');
 };
 
 export const renderOpenModal = (state, postId, i18next) => {
@@ -40,11 +41,11 @@ export const renderOpenModal = (state, postId, i18next) => {
   document.querySelector('.full-article').setAttribute('href', dataPost.link);
 };
 
-const addFeedPosts = (postsList, posts, uiState, i18next) => {
-  posts.forEach((post) => {
+const addFeedPosts = (postsList, state, i18next) => {
+  state.posts.forEach((post) => {
     const postElement = document.createElement('li');
     postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
-    const visitedLink = uiState.posts.filter((postIU) => postIU.id === post.id)[0].visited;
+    const visitedLink = _.includes(state.uiState.visitedPosts, post.id);
     const classLink = visitedLink === true ? 'font-weight-normal fw-normal text-decoration-none' : 'font-weight-bold fw-bold text-decoration-none';
     const title = getTitle(post.title, i18next);
     postElement.innerHTML = `<a href = "${post.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
@@ -52,7 +53,7 @@ const addFeedPosts = (postsList, posts, uiState, i18next) => {
   });
 };
 
-export const renderStreams = (state, uiState, i18next, elemDOM) => {
+export const renderStreams = (state, i18next, elemDOM) => {
   if (state.feeds.length === 0) return;
   elemDOM.feedsConteiner.innerHTML = '';
 
@@ -77,7 +78,7 @@ export const renderStreams = (state, uiState, i18next, elemDOM) => {
     feedElement.innerHTML = `<h3>${title}</h3><p>${feed.description}</p>`;
     feedsList.append(feedElement);
   });
-  addFeedPosts(postsList, state.posts, uiState, i18next);
+  addFeedPosts(postsList, state, i18next);
 
   elemDOM.feedsConteiner.prepend(feedsList);
   elemDOM.feedsConteiner.prepend(headingFeeds);
