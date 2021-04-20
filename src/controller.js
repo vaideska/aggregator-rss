@@ -93,8 +93,8 @@ const createListenerForm = (watchedState, elemDOM) => {
 };
 
 const addNewPostsInState = (dataStream, feedId, watchedState) => {
-  const dataPosts = dataStream.posts;
-  dataPosts.forEach((dataPost) => {
+  const newPosts = [];
+  dataStream.posts.forEach((dataPost) => {
     const { link } = dataPost;
     const oldPost = postInState(link, feedId, watchedState)[0];
     if (oldPost === undefined) {
@@ -105,9 +105,10 @@ const addNewPostsInState = (dataStream, feedId, watchedState) => {
         link,
         description: dataPost.description,
       };
-      watchedState.posts.push(post);
+      newPosts.push(post);
     }
   });
+  watchedState.posts.push(...newPosts);
 };
 
 const updatePosts = (watchedState) => {

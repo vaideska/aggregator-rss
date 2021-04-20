@@ -55,7 +55,7 @@ export default (state, i18next, elemDOM) => onChange(state, (path, value) => {
     });
   };
 
-  const renderStreams = () => {
+  const renderStreams = () => { //  разделить рендер фидов и постов
     if (state.feeds.length === 0) return;
     elemDOM.feedsConteiner.innerHTML = '';
     elemDOM.postsConteiner.innerHTML = '';
