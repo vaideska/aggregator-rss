@@ -57,7 +57,14 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
       const feedElement = document.createElement('li');
       feedElement.setAttribute('class', 'list-group-item');
       const title = getTitle(feed.title, i18next);
-      feedElement.innerHTML = `<h3>${title}</h3><p>${feed.description}</p>`;
+
+      const feedTitle = document.createElement('h3');
+      feedTitle.textContent = title;
+      const feedDescription = document.createElement('p');
+      feedDescription.textContent = feed.description;
+
+      feedElement.append(feedTitle);
+      feedElement.append(feedDescription);
       feedsList.append(feedElement);
 
       elementsDOM.feedsConteiner.prepend(feedsList);
@@ -79,7 +86,25 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
       const visitedLink = _.includes(state.uiState.visitedPosts, post.id);
       const classLink = visitedLink === true ? 'font-weight-normal fw-normal text-decoration-none' : 'font-weight-bold fw-bold text-decoration-none';
       const title = getTitle(post.title, i18next);
-      postElement.innerHTML = `<a href = "${post.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
+
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', post.link);
+      linkElement.setAttribute('class', classLink);
+      linkElement.setAttribute('data-id', post.id);
+      linkElement.setAttribute('target', '_blank');
+      linkElement.setAttribute('rel', 'noopener noreferrer');
+      linkElement.textContent = title;
+
+      const buttonElement = document.createElement('button');
+      buttonElement.setAttribute('type', 'button');
+      buttonElement.setAttribute('class', 'btn btn-primary btn-sm');
+      buttonElement.setAttribute('data-id', post.id);
+      buttonElement.setAttribute('data-bs-toggle', 'modal');
+      buttonElement.setAttribute('data-bs-target', '#modal');
+      buttonElement.textContent = i18next.t('modalButtonName');
+
+      postElement.append(linkElement);
+      postElement.append(buttonElement);
       postsList.prepend(postElement);
     });
 

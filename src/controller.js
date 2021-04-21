@@ -26,9 +26,9 @@ const validation = (url, state) => {
   return true;
 };
 
-const postInState = (link, feedId, state) => state.posts.filter(
+const isPostInState = (link, feedId, state) => state.posts.filter(
   (post) => post.feedId === feedId && post.link === link,
-);
+).length > 0;
 
 const addStreamInState = (url, dataStream, watchedState) => {
   const feedId = _.uniqueId();
@@ -95,8 +95,7 @@ const addNewPostsInState = (dataStream, feedId, watchedState) => {
   const newPosts = [];
   dataStream.posts.forEach((dataPost) => {
     const { link } = dataPost;
-    const oldPost = postInState(link, feedId, watchedState)[0];
-    if (oldPost === undefined) {
+    if (!isPostInState(link, feedId, watchedState)) {
       const post = {
         id: _.uniqueId(),
         feedId,
