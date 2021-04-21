@@ -53,7 +53,7 @@ const addStreamInState = (url, dataStream, watchedState) => {
   watchedState.posts.push(...newPosts);
 };
 
-const createListenerForm = (watchedState, elemDOM) => {
+const createListenerForm = (watchedState, elementsDOM) => {
   const addStream = (element) => {
     element.preventDefault();
 
@@ -74,7 +74,6 @@ const createListenerForm = (watchedState, elemDOM) => {
       .then((response) => {
         const dataStream = parseRSS(response.data.contents);
         addStreamInState(url, dataStream, watchedState);
-        watchedState.lastUpdatedDate = new Date();
         watchedState.errorMsgFeedback = '';
         watchedState.validURL = true;
         watchedState.streamLoadingStatus = 'success';
@@ -89,7 +88,7 @@ const createListenerForm = (watchedState, elemDOM) => {
       });
   };
 
-  elemDOM.rssFormConteiner.addEventListener('submit', addStream);
+  elementsDOM.rssFormConteiner.addEventListener('submit', addStream);
 };
 
 const addNewPostsInState = (dataStream, feedId, watchedState) => {
@@ -108,25 +107,28 @@ const addNewPostsInState = (dataStream, feedId, watchedState) => {
       newPosts.push(post);
     }
   });
-  watchedState.posts.push(...newPosts);
+  if (newPosts.length !== 0) {
+    watchedState.posts.push(...newPosts);
+  }
 };
 
 const updatePosts = (watchedState) => {
-  const promises = watchedState.feeds.map((feed) => {
+  const streamLoading = (feed) => {
     const urlSream = feed.url;
     return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
       .then((response) => {
         const dataStream = parseRSS(response.data.contents);
         addNewPostsInState(dataStream, feed.id, watchedState);
       });
-  });
+  };
+
+  const promises = watchedState.feeds.map(streamLoading);
   Promise.all(promises)
     .finally(() => {
-      watchedState.lastUpdatedDate = new Date();
     });
 };
 
-const createListenerClickLink = (watchedState, elemDOM) => {
+const createListenerClickLink = (watchedState, elementsDOM) => {
   const updateVsitedLink = (e) => {
     const postId = e.target.dataset.id;
     if (postId) {
@@ -137,20 +139,25 @@ const createListenerClickLink = (watchedState, elemDOM) => {
     }
   };
 
-  elemDOM.postsConteiner.addEventListener('click', updateVsitedLink);
+  elementsDOM.postsConteiner.addEventListener('click', updateVsitedLink);
 };
 
 const runApp = (initState, i18next) => {
-  const elemDOM = {
+  const elementsDOM = {
     rssFormConteiner: document.querySelector('.rss-form'),
+    inputElement: document.querySelector('input'),
     feedsConteiner: document.querySelector('.feeds'),
     postsConteiner: document.querySelector('.posts'),
+    feedbackElement: document.querySelector('.feedback'),
+    modalTitle: document.querySelector('.modal-title'),
+    modalBody: document.querySelector('.modal-body'),
+    modalBtnLink: document.querySelector('.full-article'),
   };
 
-  const watchedState = watcher(initState, i18next, elemDOM);
+  const watchedState = watcher(initState, i18next, elementsDOM);
 
-  createListenerForm(watchedState, elemDOM);
-  createListenerClickLink(watchedState, elemDOM);
+  createListenerForm(watchedState, elementsDOM);
+  createListenerClickLink(watchedState, elementsDOM);
 
   const cb = () => {
     updatePosts(watchedState);

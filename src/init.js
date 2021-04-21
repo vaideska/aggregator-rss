@@ -14,7 +14,6 @@ export default () => {
       streamLoadingStatus: 'init',
       validURL: '',
       errorMsgFeedback: '',
-      lastUpdatedDate: '',
       feeds: [],
       posts: [],
       uiState: {

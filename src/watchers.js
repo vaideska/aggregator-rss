@@ -2,48 +2,77 @@
 import _ from 'lodash';
 import onChange from 'on-change';
 
-export default (state, i18next, elemDOM) => onChange(state, (path, value) => {
+export default (state, i18next, elementsDOM) => onChange(state, (path, value) => {
   const getTitle = (title) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
 
   const renderFeedback = () => {
-    const feedbackElement = document.querySelector('.feedback');
+    const { feedbackElement } = elementsDOM;
     if (state.validURL) {
       feedbackElement.classList.remove('text-danger');
       feedbackElement.classList.add('text-success');
       feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
-      document.querySelector('form').reset();
+      elementsDOM.rssFormConteiner.reset();
     } else {
       feedbackElement.classList.remove('text-success');
       feedbackElement.classList.add('text-danger');
       feedbackElement.textContent = i18next.t(`feedbackMessage.${state.errorMsgFeedback}`);
     }
-    document.querySelector('input').focus();
+    elementsDOM.inputElement.focus();
   };
 
   const renderBlockForm = () => {
     if (state.streamLoadingStatus === 'loading') {
-      document.querySelector('input').setAttribute('readonly', '');
+      elementsDOM.inputElement.setAttribute('readonly', '');
       document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
     } else {
-      document.querySelector('input').removeAttribute('readonly', '');
+      elementsDOM.inputElement.removeAttribute('readonly', '');
       document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
       renderFeedback();
     }
   };
 
-  const renderVisitedLink = (id) => {
-    document.querySelector(`a[data-id="${id}"]`).setAttribute('class', 'fw-normal');
+  const renderVisitedLink = (visitedPosts) => {
+    const visitedLastPostId = visitedPosts[visitedPosts.length - 1];
+    document.querySelector(`a[data-id="${visitedLastPostId}"]`).setAttribute('class', 'fw-normal');
   };
 
   const renderOpenModal = (postId) => {
     const dataPost = state.posts.filter((post) => post.id === postId)[0];
     const title = getTitle(dataPost.title, i18next);
-    document.querySelector('.modal-title').textContent = title;
-    document.querySelector('.modal-body').textContent = dataPost.description;
+    elementsDOM.modalTitle.textContent = title;
+    elementsDOM.modalBody.textContent = dataPost.description;
     document.querySelector('.full-article').setAttribute('href', dataPost.link);
   };
 
-  const addFeedPosts = (postsList) => {
+  const renderFeeds = () => {
+    elementsDOM.feedsConteiner.innerHTML = '';
+
+    const headingFeeds = document.createElement('h2');
+    headingFeeds.textContent = i18next.t('feeds');
+
+    const feedsList = document.createElement('ul');
+    feedsList.setAttribute('class', 'list-group mb-5');
+
+    state.feeds.forEach((feed) => {
+      const feedElement = document.createElement('li');
+      feedElement.setAttribute('class', 'list-group-item');
+      const title = getTitle(feed.title, i18next);
+      feedElement.innerHTML = `<h3>${title}</h3><p>${feed.description}</p>`;
+      feedsList.append(feedElement);
+
+      elementsDOM.feedsConteiner.prepend(feedsList);
+      elementsDOM.feedsConteiner.prepend(headingFeeds);
+    });
+  };
+
+  const renderPosts = () => {
+    elementsDOM.postsConteiner.innerHTML = '';
+    const headingPosts = document.createElement('h2');
+    headingPosts.textContent = i18next.t('posts');
+
+    const postsList = document.createElement('ul');
+    postsList.setAttribute('class', 'list-group mb-5');
+
     state.posts.forEach((post) => {
       const postElement = document.createElement('li');
       postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
@@ -53,50 +82,25 @@ export default (state, i18next, elemDOM) => onChange(state, (path, value) => {
       postElement.innerHTML = `<a href = "${post.link}" class="${classLink}" data-id="${post.id}" target="_blank" rel="noopener noreferrer">${title}</a> <button type="button" class="btn btn-primary btn-sm" data-id="${post.id}" data-bs-toggle="modal" data-bs-target="#modal">${i18next.t('modalButtonName')}</button>`;
       postsList.prepend(postElement);
     });
-  };
 
-  const renderStreams = () => { //  разделить рендер фидов и постов
-    if (state.feeds.length === 0) return;
-    elemDOM.feedsConteiner.innerHTML = '';
-    elemDOM.postsConteiner.innerHTML = '';
-
-    const headingFeeds = document.createElement('h2');
-    headingFeeds.textContent = i18next.t('feeds');
-
-    const headingPosts = document.createElement('h2');
-    headingPosts.textContent = i18next.t('posts');
-
-    const feedsList = document.createElement('ul');
-    feedsList.setAttribute('class', 'list-group mb-5');
-
-    const postsList = document.createElement('ul');
-    postsList.setAttribute('class', 'list-group mb-5');
-
-    state.feeds.forEach((feed) => {
-      const feedElement = document.createElement('li');
-      feedElement.setAttribute('class', 'list-group-item');
-      const title = getTitle(feed.title, i18next);
-      feedElement.innerHTML = `<h3>${title}</h3><p>${feed.description}</p>`;
-      feedsList.append(feedElement);
-    });
-    addFeedPosts(postsList);
-
-    elemDOM.feedsConteiner.prepend(feedsList);
-    elemDOM.feedsConteiner.prepend(headingFeeds);
-    elemDOM.postsConteiner.prepend(postsList);
-    elemDOM.postsConteiner.prepend(headingPosts);
+    elementsDOM.postsConteiner.prepend(postsList);
+    elementsDOM.postsConteiner.prepend(headingPosts);
   };
 
   switch (path) {
-    case 'lastUpdatedDate': {
-      renderStreams();
+    case 'feeds': {
+      renderFeeds();
+      break;
+    }
+    case 'posts': {
+      renderPosts();
       break;
     }
     case 'streamLoadingStatus': {
       renderBlockForm();
       break;
     }
-    case 'visitedPosts': {
+    case 'uiState.visitedPosts': {
       renderVisitedLink(value);
       break;
     }
