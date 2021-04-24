@@ -15,19 +15,19 @@ const parseDataDOM = (dataDOM) => {
   return { titleFeed, descriptionFeed, posts };
 };
 
-class ParserError extends Error {
+/*  class ParserError extends Error {
   constructor(message) {
     super(message);
     this.name = 'ParserError';
     this.isParsingError = true;
   }
-}
+} */
 
 const parseRSS = (data) => {
   const parser = new DOMParser();
   const dataDOM = parser.parseFromString(data, 'application/xml');
   if (dataDOM.querySelector('parsererror')) {
-    throw new ParserError('notValidRss');
+    throw new Error('notValidRss');
   }
   return parseDataDOM(dataDOM);
 };

@@ -72,7 +72,7 @@ const createListenerForm = (watchedState, elementsDOM) => {
         .catch((err) => {
           if (err.isAxiosError) {
             watchedState.errorMsgFeedback = 'networkError';
-          } else if (err.isParsingError) {
+          } else if (err.message === 'notValidRss') {
             watchedState.errorMsgFeedback = err.message;
           } else {
             watchedState.errorMsgFeedback = 'unknownError';
