@@ -15,20 +15,16 @@ const getHostNameURL = (url) => {
 };
 
 const validation = (url, state) => {
-  const schemaURL = yup.string().url();
+  const schemaURL = yup.string().url().required();
   const schemaNotOneOf = yup.mixed().notOneOf(state.feeds.map((feed) => getHostNameURL(feed.url)));
   try {
     schemaNotOneOf.validateSync(getHostNameURL(url));
     schemaURL.validateSync(url);
+    return null;
   } catch (err) {
-    return err.message;
+    return err.name;
   }
-  return true;
 };
-
-const isPostInState = (link, feedId, state) => state.posts.filter(
-  (post) => post.feedId === feedId && post.link === link,
-).length > 0;
 
 const addStreamInState = (url, dataStream, watchedState) => {
   const feedId = _.uniqueId();
@@ -39,7 +35,6 @@ const addStreamInState = (url, dataStream, watchedState) => {
     description: dataStream.descriptionFeed,
   });
 
-  const newPosts = [];
   dataStream.posts.forEach((dataPost) => {
     const post = {
       id: _.uniqueId(),
@@ -48,83 +43,64 @@ const addStreamInState = (url, dataStream, watchedState) => {
       link: dataPost.link,
       description: dataPost.description,
     };
-    newPosts.unshift(post);
+    watchedState.posts.push(post);
   });
-  watchedState.posts.push(...newPosts);
 };
 
 const createListenerForm = (watchedState, elementsDOM) => {
   const addStream = (element) => {
     element.preventDefault();
 
-    watchedState.streamLoadingStatus = 'loading';
     const formData = new FormData(element.target);
     const url = formData.get('url').trim();
 
     const valid = validation(url, watchedState);
-    if (valid !== true) {
-      const alreadyExists = valid.match(/^this must not be one of/, '');
-      watchedState.errorMsgFeedback = alreadyExists === null ? 'validURL' : 'alreadyExists';
+    if (valid) {
+      watchedState.errorMsgFeedback = valid;
       watchedState.validURL = false;
       watchedState.streamLoadingStatus = 'error';
-      return;
+    } else {
+      watchedState.validURL = true;
+      watchedState.streamLoadingStatus = 'loading';
+      axios.get(`${proxy}${encodeURIComponent(url)}`)
+        .then((response) => {
+          const dataStream = parseRSS(response.data.contents);
+          addStreamInState(url, dataStream, watchedState);
+          watchedState.errorMsgFeedback = '';
+          watchedState.streamLoadingStatus = 'success';
+        })
+        .catch((err) => {
+          if (err.isAxiosError) {
+            watchedState.errorMsgFeedback = 'networkError';
+          } else if (err.isParsingError) {
+            watchedState.errorMsgFeedback = err.message;
+          } else {
+            watchedState.errorMsgFeedback = 'unknownError';
+          }
+          watchedState.streamLoadingStatus = 'error';
+        });
     }
-
-    axios.get(`${proxy}${encodeURIComponent(url)}`)
-      .then((response) => {
-        const dataStream = parseRSS(response.data.contents);
-        addStreamInState(url, dataStream, watchedState);
-        watchedState.errorMsgFeedback = '';
-        watchedState.validURL = true;
-        watchedState.streamLoadingStatus = 'success';
-      })
-      .catch((err) => {
-        if (err.message === 'Network Error' || err.message === 'no internet') {
-          watchedState.errorMsgFeedback = 'networkError';
-        } else {
-          watchedState.errorMsgFeedback = err.message;
-        }
-        watchedState.streamLoadingStatus = 'error';
-      });
   };
 
   elementsDOM.rssFormConteiner.addEventListener('submit', addStream);
 };
 
+const isPostInState = (objStream, objState) => objStream.link === objState.link;
+
 const addNewPostsInState = (dataStream, feedId, watchedState) => {
-  const newPosts = [];
-  dataStream.posts.forEach((dataPost) => {
-    const { link } = dataPost;
-    if (!isPostInState(link, feedId, watchedState)) {
+  const newPosts = _.differenceWith(dataStream.posts, watchedState.posts, isPostInState);
+  if (newPosts.length !== 0) {
+    newPosts.forEach((dataPost) => {
       const post = {
         id: _.uniqueId(),
         feedId,
         title: dataPost.title,
-        link,
+        link: dataPost.link,
         description: dataPost.description,
       };
-      newPosts.push(post);
-    }
-  });
-  if (newPosts.length !== 0) {
-    watchedState.posts.push(...newPosts);
-  }
-};
-
-const updatePosts = (watchedState) => {
-  const streamLoading = (feed) => {
-    const urlSream = feed.url;
-    return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
-      .then((response) => {
-        const dataStream = parseRSS(response.data.contents);
-        addNewPostsInState(dataStream, feed.id, watchedState);
-      });
-  };
-
-  const promises = watchedState.feeds.map(streamLoading);
-  Promise.all(promises)
-    .finally(() => {
+      watchedState.posts.push(post);
     });
+  }
 };
 
 const createListenerClickLink = (watchedState, elementsDOM) => {
@@ -132,8 +108,6 @@ const createListenerClickLink = (watchedState, elementsDOM) => {
     const postId = e.target.dataset.id;
     if (postId) {
       watchedState.uiState.visitedPosts.push(postId);
-    }
-    if (e.target.tagName === 'BUTTON') {
       watchedState.uiState.modalPostId = postId;
     }
   };
@@ -144,10 +118,8 @@ const createListenerClickLink = (watchedState, elementsDOM) => {
 const runApp = (initState, i18next) => {
   const elementsDOM = {
     rssFormConteiner: document.querySelector('.rss-form'),
-    inputElement: document.querySelector('input'),
     feedsConteiner: document.querySelector('.feeds'),
     postsConteiner: document.querySelector('.posts'),
-    feedbackElement: document.querySelector('.feedback'),
     modalTitle: document.querySelector('.modal-title'),
     modalBody: document.querySelector('.modal-body'),
     modalBtnLink: document.querySelector('.full-article'),
@@ -159,8 +131,21 @@ const runApp = (initState, i18next) => {
   createListenerClickLink(watchedState, elementsDOM);
 
   const cb = () => {
-    updatePosts(watchedState);
-    setTimeout(cb, updateInterval);
+    const streamLoading = (feed) => {
+      const urlSream = feed.url;
+      return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
+        .then((response) => {
+          const dataStream = parseRSS(response.data.contents);
+          addNewPostsInState(dataStream, feed.id, watchedState);
+        })
+        .catch(() => {});
+    };
+
+    const promises = watchedState.feeds.map(streamLoading);
+    Promise.all(promises)
+      .finally(() => {
+        setTimeout(cb, updateInterval);
+      });
   };
 
   setTimeout(cb, updateInterval);

@@ -6,8 +6,8 @@ export default {
     modalButtonName: 'Просмотр',
     feedbackMessage: {
       notValidRss: 'Ресурс не содержит валидный RSS',
-      alreadyExists: 'RSS уже существует',
-      validURL: 'Ссылка должна быть валидным URL',
+      ValidationError: 'RSS уже существует',
+      TypeError: 'Ссылка должна быть валидным URL',
       successMsg: 'RSS успешно загружен',
       networkError: 'Ошибка сети',
       unknownError: 'Неизвестная ошибка. Что-то пошло не так.',

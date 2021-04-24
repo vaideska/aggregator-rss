@@ -12,12 +12,12 @@ export default () => {
   }).then(() => {
     const state = {
       streamLoadingStatus: 'init',
-      validURL: '',
-      errorMsgFeedback: '',
+      validURL: false,
+      errorMsgFeedback: null,
       feeds: [],
       posts: [],
       uiState: {
-        modalPostId: '',
+        modalPostId: null,
         visitedPosts: [],
       },
     };

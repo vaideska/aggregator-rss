@@ -6,8 +6,8 @@ export default {
     modalButtonName: 'Review',
     feedbackMessage: {
       notValidRss: 'Resource does not contain valid RSS',
-      alreadyExists: 'RSS already exists',
-      validURL: 'The link must be a valid URL',
+      ValidationError: 'RSS already exists',
+      TypeError: 'The link must be a valid URL',
       successMsg: 'RSS loaded successfully',
       networkError: 'Network Error',
       unknownError: 'Unknown error. Something went wrong.',

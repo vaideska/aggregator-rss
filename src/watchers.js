@@ -2,12 +2,12 @@
 import _ from 'lodash';
 import onChange from 'on-change';
 
-export default (state, i18next, elementsDOM) => onChange(state, (path, value) => {
-  const getTitle = (title) => (title === 'emptyTitle' ? i18next.t('emptyTitle') : title);
+export default (state, i18next, elementsDOM) => {
+  const getTitle = (title) => (title === null ? i18next.t('emptyTitle') : title);
 
   const renderFeedback = () => {
-    const { feedbackElement } = elementsDOM;
-    if (state.validURL) {
+    const feedbackElement = elementsDOM.rssFormConteiner.querySelector('.feedback');
+    if (state.validURL && state.streamLoadingStatus === 'success') {
       feedbackElement.classList.remove('text-danger');
       feedbackElement.classList.add('text-success');
       feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
@@ -17,15 +17,15 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
       feedbackElement.classList.add('text-danger');
       feedbackElement.textContent = i18next.t(`feedbackMessage.${state.errorMsgFeedback}`);
     }
-    elementsDOM.inputElement.focus();
+    elementsDOM.rssFormConteiner.querySelector('input').focus();
   };
 
   const renderBlockForm = () => {
     if (state.streamLoadingStatus === 'loading') {
-      elementsDOM.inputElement.setAttribute('readonly', '');
+      elementsDOM.rssFormConteiner.querySelector('input').setAttribute('readonly', '');
       document.querySelector('button[type=submit]').setAttribute('disabled', 'disabled');
     } else {
-      elementsDOM.inputElement.removeAttribute('readonly', '');
+      elementsDOM.rssFormConteiner.querySelector('input').removeAttribute('readonly', '');
       document.querySelector('button[type=submit]').removeAttribute('disabled', 'disabled');
       renderFeedback();
     }
@@ -37,16 +37,14 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
   };
 
   const renderOpenModal = (postId) => {
-    const dataPost = state.posts.filter((post) => post.id === postId)[0];
+    const dataPost = _.find(state.posts, { id: postId });
     const title = getTitle(dataPost.title, i18next);
     elementsDOM.modalTitle.textContent = title;
     elementsDOM.modalBody.textContent = dataPost.description;
-    document.querySelector('.full-article').setAttribute('href', dataPost.link);
+    elementsDOM.modalBtnLink.setAttribute('href', dataPost.link);
   };
 
   const renderFeeds = () => {
-    elementsDOM.feedsConteiner.innerHTML = '';
-
     const headingFeeds = document.createElement('h2');
     headingFeeds.textContent = i18next.t('feeds');
 
@@ -67,13 +65,13 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
       feedElement.append(feedDescription);
       feedsList.append(feedElement);
 
+      elementsDOM.feedsConteiner.innerHTML = '';
       elementsDOM.feedsConteiner.prepend(feedsList);
       elementsDOM.feedsConteiner.prepend(headingFeeds);
     });
   };
 
   const renderPosts = () => {
-    elementsDOM.postsConteiner.innerHTML = '';
     const headingPosts = document.createElement('h2');
     headingPosts.textContent = i18next.t('posts');
 
@@ -84,7 +82,7 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
       const postElement = document.createElement('li');
       postElement.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-start');
       const visitedLink = _.includes(state.uiState.visitedPosts, post.id);
-      const classLink = visitedLink === true ? 'font-weight-normal fw-normal text-decoration-none' : 'font-weight-bold fw-bold text-decoration-none';
+      const classLink = visitedLink ? 'font-weight-normal fw-normal text-decoration-none' : 'font-weight-bold fw-bold text-decoration-none';
       const title = getTitle(post.title, i18next);
 
       const linkElement = document.createElement('a');
@@ -107,34 +105,36 @@ export default (state, i18next, elementsDOM) => onChange(state, (path, value) =>
       postElement.append(buttonElement);
       postsList.prepend(postElement);
     });
-
+    elementsDOM.postsConteiner.innerHTML = '';
     elementsDOM.postsConteiner.prepend(postsList);
     elementsDOM.postsConteiner.prepend(headingPosts);
   };
 
-  switch (path) {
-    case 'feeds': {
-      renderFeeds();
-      break;
+  return onChange(state, (path, value) => {
+    switch (path) {
+      case 'feeds': {
+        renderFeeds();
+        break;
+      }
+      case 'posts': {
+        renderPosts();
+        break;
+      }
+      case 'streamLoadingStatus': {
+        renderBlockForm();
+        break;
+      }
+      case 'uiState.visitedPosts': {
+        renderVisitedLink(value);
+        break;
+      }
+      case 'uiState.modalPostId': {
+        renderOpenModal(value);
+        break;
+      }
+      default: {
+        break;
+      }
     }
-    case 'posts': {
-      renderPosts();
-      break;
-    }
-    case 'streamLoadingStatus': {
-      renderBlockForm();
-      break;
-    }
-    case 'uiState.visitedPosts': {
-      renderVisitedLink(value);
-      break;
-    }
-    case 'uiState.modalPostId': {
-      renderOpenModal(value);
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-});
+  });
+};
