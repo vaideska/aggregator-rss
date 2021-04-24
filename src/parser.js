@@ -15,16 +15,13 @@ const parseDataDOM = (dataDOM) => {
   return { titleFeed, descriptionFeed, posts };
 };
 
-class ParserError {
+class ParserError extends Error {
   constructor(message) {
+    super(message);
     this.name = 'ParserError';
-    this.message = message || 'Parser Error';
     this.isParsingError = true;
-    this.stack = (new Error()).stack;
   }
 }
-ParserError.prototype = Object.create(Error.prototype);
-ParserError.prototype.constructor = ParserError;
 
 const parseRSS = (data) => {
   const parser = new DOMParser();
