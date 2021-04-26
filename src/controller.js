@@ -9,20 +9,15 @@ import parseRSS from './parser';
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
 
-const getHostNameURL = (url) => {
-  const urlObj = new URL(url);
-  return urlObj.hostname;
-};
-
 const validation = (url, state) => {
-  const schemaURL = yup.string().url().required();
-  const schemaNotOneOf = yup.mixed().notOneOf(state.feeds.map((feed) => getHostNameURL(feed.url)));
+  const schemaURL = yup.string().required().url();
+  const schema = yup.mixed()
+    .notOneOf(state.feeds.map((feed) => feed.url)).concat(schemaURL);
   try {
-    schemaNotOneOf.validateSync(getHostNameURL(url));
-    schemaURL.validateSync(url);
+    schema.validateSync(url);
     return null;
   } catch (err) {
-    return err.name;
+    return err.message;
   }
 };
 
@@ -54,9 +49,11 @@ const createListenerForm = (watchedState, elementsDOM) => {
     const formData = new FormData(element.target);
     const url = formData.get('url').trim();
 
-    const valid = validation(url, watchedState);
-    if (valid) {
-      watchedState.errorMsgFeedback = valid;
+    const error = validation(url, watchedState);
+
+    if (error) {
+      //  console.log(error.message.key, '!!!', error.key);
+      watchedState.errorMsgFeedback = error === 'this must be a valid URL' ? 'validURL' : 'alreadyExists';
       watchedState.validURL = false;
       watchedState.streamLoadingStatus = 'error';
     } else {
@@ -85,6 +82,18 @@ const createListenerForm = (watchedState, elementsDOM) => {
   elementsDOM.rssFormConteiner.addEventListener('submit', addStream);
 };
 
+const createListenerClickLink = (watchedState, elementsDOM) => {
+  const updateVsitedLink = (e) => {
+    const postId = e.target.dataset.id;
+    if (postId) {
+      watchedState.uiState.visitedPosts.push(postId);
+      watchedState.uiState.modalPostId = postId;
+    }
+  };
+
+  elementsDOM.postsConteiner.addEventListener('click', updateVsitedLink);
+};
+
 const isPostInState = (objStream, objState) => objStream.link === objState.link;
 
 const addNewPostsInState = (dataStream, feedId, watchedState) => {
@@ -103,16 +112,25 @@ const addNewPostsInState = (dataStream, feedId, watchedState) => {
   }
 };
 
-const createListenerClickLink = (watchedState, elementsDOM) => {
-  const updateVsitedLink = (e) => {
-    const postId = e.target.dataset.id;
-    if (postId) {
-      watchedState.uiState.visitedPosts.push(postId);
-      watchedState.uiState.modalPostId = postId;
-    }
+const updatePosts = (watchedState) => {
+  const streamLoading = (feed) => {
+    const urlSream = feed.url;
+    return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
+      .then((response) => {
+        const dataStream = parseRSS(response.data.contents);
+        addNewPostsInState(dataStream, feed.id, watchedState);
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.log(err.message);
+      });
   };
 
-  elementsDOM.postsConteiner.addEventListener('click', updateVsitedLink);
+  const promises = watchedState.feeds.map(streamLoading);
+  Promise.all(promises)
+    .finally(() => {
+      setTimeout(updatePosts, updateInterval, watchedState);
+    });
 };
 
 const runApp = (initState, i18next) => {
@@ -130,25 +148,7 @@ const runApp = (initState, i18next) => {
   createListenerForm(watchedState, elementsDOM);
   createListenerClickLink(watchedState, elementsDOM);
 
-  const cb = () => {
-    const streamLoading = (feed) => {
-      const urlSream = feed.url;
-      return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
-        .then((response) => {
-          const dataStream = parseRSS(response.data.contents);
-          addNewPostsInState(dataStream, feed.id, watchedState);
-        })
-        .catch(() => {});
-    };
-
-    const promises = watchedState.feeds.map(streamLoading);
-    Promise.all(promises)
-      .finally(() => {
-        setTimeout(cb, updateInterval);
-      });
-  };
-
-  setTimeout(cb, updateInterval);
+  setTimeout(updatePosts, updateInterval, watchedState);
 };
 
 export default runApp;
