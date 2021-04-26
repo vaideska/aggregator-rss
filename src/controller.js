@@ -9,15 +9,15 @@ import parseRSS from './parser';
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
 
-const validation = (url, state) => {
-  const schemaURL = yup.string().required().url();
-  const schema = yup.mixed()
-    .notOneOf(state.feeds.map((feed) => feed.url)).concat(schemaURL);
+const baseUrlSchema = yup.string().url().required();
+const validateUrl = (url, feeds) => {
+  const feedUrls = feeds.map((feed) => feed.url);
+  const actualUrlSchema = baseUrlSchema.notOneOf(feedUrls);
   try {
-    schema.validateSync(url);
+    actualUrlSchema.validateSync(url);
     return null;
-  } catch (err) {
-    return err.message;
+  } catch (e) {
+    return e.message;
   }
 };
 
@@ -49,10 +49,9 @@ const createListenerForm = (watchedState, elementsDOM) => {
     const formData = new FormData(element.target);
     const url = formData.get('url').trim();
 
-    const error = validation(url, watchedState);
+    const error = validateUrl(url, watchedState.feeds);
 
     if (error) {
-      //  console.log(error.message.key, '!!!', error.key);
       watchedState.errorMsgFeedback = error === 'this must be a valid URL' ? 'validURL' : 'alreadyExists';
       watchedState.validURL = false;
       watchedState.streamLoadingStatus = 'error';
