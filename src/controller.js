@@ -67,6 +67,7 @@ const createListenerForm = (watchedState, elementsDOM) => {
     const formData = new FormData(event.target);
     const url = formData.get('url').trim();
 
+    watchedState.streamLoadingStatus = 'init';
     watchedState.validStatus = 'valid';
     const error = validateUrl(url, watchedState.feeds);
 

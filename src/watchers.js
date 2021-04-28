@@ -8,12 +8,14 @@ export default (state, i18next, elementsDOM) => {
   const renderFeedback = () => {
     const feedbackElement = elementsDOM.rssFormConteiner.querySelector('.feedback');
     if (state.validStatus === 'success' && state.streamLoadingStatus === 'success') {
+      console.log('success', state);
       feedbackElement.classList.remove('text-danger');
       feedbackElement.classList.add('text-success');
       feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
       elementsDOM.rssFormConteiner.reset();
     }
     if (state.validStatus === 'error' || state.streamLoadingStatus === 'error') {
+      console.log('error', state);
       feedbackElement.classList.remove('text-success');
       feedbackElement.classList.add('text-danger');
       feedbackElement.textContent = i18next.t(`feedbackMessage.${state.errorMsgFeedback}`);
