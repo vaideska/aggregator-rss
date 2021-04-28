@@ -90,7 +90,7 @@ const createListenerForm = (watchedState, elementsDOM) => {
           } else if (err.isParsingError) {
             watchedState.errorMsgFeedback = 'notValidRss';
           } else {
-            watchedState.errorMsgFeedback = 'unknownError';
+            watchedState.errorMsgFeedback = err;
           }
           watchedState.streamLoadingStatus = 'error';
         });
