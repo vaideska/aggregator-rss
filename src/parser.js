@@ -19,7 +19,10 @@ const parseRSS = (data) => {
   const parser = new DOMParser();
   const dataDOM = parser.parseFromString(data, 'application/xml');
   if (dataDOM.querySelector('parsererror')) {
-    throw new Error('notValidRss');
+    const error = new Error();
+    error.isParsingError = true;
+    throw error;
+    //  throw new Error('notValidRss');
   }
   return parseDataDOM(dataDOM);
 };

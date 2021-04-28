@@ -9,7 +9,27 @@ import parseRSS from './parser';
 const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
 const updateInterval = 5000;
 
+const getProxyURL = (url) => {
+  const proxyURL = new URL(proxy);
+  const paramsURL = new URLSearchParams(proxyURL.search);
+  paramsURL.set('url', url);
+  proxyURL.search = paramsURL;
+  return proxyURL;
+};
+
+yup.setLocale({
+  string: {
+    url: 'validURL',
+    default: 'unknownError',
+  },
+  mixed: {
+    notOneOf: 'alreadyExists',
+    default: 'unknownError',
+  },
+});
+
 const baseUrlSchema = yup.string().url().required();
+
 const validateUrl = (url, feeds) => {
   const feedUrls = feeds.map((feed) => feed.url);
   const actualUrlSchema = baseUrlSchema.notOneOf(feedUrls);
@@ -30,46 +50,44 @@ const addStreamInState = (url, dataStream, watchedState) => {
     description: dataStream.descriptionFeed,
   });
 
-  dataStream.posts.forEach((dataPost) => {
-    const post = {
-      id: _.uniqueId(),
-      feedId,
-      title: dataPost.title,
-      link: dataPost.link,
-      description: dataPost.description,
-    };
-    watchedState.posts.push(post);
-  });
+  const newPosts = dataStream.posts.map((dataPost) => ({
+    id: _.uniqueId(),
+    feedId,
+    title: dataPost.title,
+    link: dataPost.link,
+    description: dataPost.description,
+  }));
+  watchedState.posts.push(...newPosts);
 };
 
 const createListenerForm = (watchedState, elementsDOM) => {
-  const addStream = (element) => {
-    element.preventDefault();
+  const addStream = (event) => {
+    event.preventDefault();
 
-    const formData = new FormData(element.target);
+    const formData = new FormData(event.target);
     const url = formData.get('url').trim();
 
+    watchedState.validStatus = 'valid';
     const error = validateUrl(url, watchedState.feeds);
 
     if (error) {
-      watchedState.errorMsgFeedback = error === 'this must be a valid URL' ? 'validURL' : 'alreadyExists';
-      watchedState.validURL = false;
-      watchedState.streamLoadingStatus = 'error';
+      watchedState.errorMsgFeedback = error;
+      watchedState.validStatus = 'error';
     } else {
-      watchedState.validURL = true;
+      watchedState.validStatus = 'success';
       watchedState.streamLoadingStatus = 'loading';
-      axios.get(`${proxy}${encodeURIComponent(url)}`)
+      axios.get(getProxyURL(url))
         .then((response) => {
           const dataStream = parseRSS(response.data.contents);
           addStreamInState(url, dataStream, watchedState);
-          watchedState.errorMsgFeedback = '';
           watchedState.streamLoadingStatus = 'success';
+          watchedState.errorMsgFeedback = '';
         })
         .catch((err) => {
           if (err.isAxiosError) {
             watchedState.errorMsgFeedback = 'networkError';
-          } else if (err.message === 'notValidRss') {
-            watchedState.errorMsgFeedback = err.message;
+          } else if (err.isParsingError) {
+            watchedState.errorMsgFeedback = 'notValidRss';
           } else {
             watchedState.errorMsgFeedback = 'unknownError';
           }
@@ -82,8 +100,8 @@ const createListenerForm = (watchedState, elementsDOM) => {
 };
 
 const createListenerClickLink = (watchedState, elementsDOM) => {
-  const updateVsitedLink = (e) => {
-    const postId = e.target.dataset.id;
+  const updateVsitedLink = (event) => {
+    const postId = event.target.dataset.id;
     if (postId) {
       watchedState.uiState.visitedPosts.push(postId);
       watchedState.uiState.modalPostId = postId;
@@ -93,28 +111,25 @@ const createListenerClickLink = (watchedState, elementsDOM) => {
   elementsDOM.postsConteiner.addEventListener('click', updateVsitedLink);
 };
 
-const isPostInState = (objStream, objState) => objStream.link === objState.link;
+const isPostInState = (objStream, objState) => objStream.title === objState.title;
 
 const addNewPostsInState = (dataStream, feedId, watchedState) => {
-  const newPosts = _.differenceWith(dataStream.posts, watchedState.posts, isPostInState);
-  if (newPosts.length !== 0) {
-    newPosts.forEach((dataPost) => {
-      const post = {
-        id: _.uniqueId(),
-        feedId,
-        title: dataPost.title,
-        link: dataPost.link,
-        description: dataPost.description,
-      };
-      watchedState.posts.push(post);
-    });
-  }
+  const stateFeedPosts = watchedState.posts.filter((post) => post.feedId === feedId);
+  const differencePosts = _.differenceWith(dataStream.posts, stateFeedPosts, isPostInState);
+  const newPosts = differencePosts.map((dataPost) => ({
+    id: _.uniqueId(),
+    feedId,
+    title: dataPost.title,
+    link: dataPost.link,
+    description: dataPost.description,
+  }));
+  watchedState.posts.push(...newPosts);
 };
 
 const updatePosts = (watchedState) => {
   const streamLoading = (feed) => {
     const urlSream = feed.url;
-    return axios.get(`${proxy}${encodeURIComponent(urlSream)}`)
+    return axios.get(getProxyURL(urlSream))
       .then((response) => {
         const dataStream = parseRSS(response.data.contents);
         addNewPostsInState(dataStream, feed.id, watchedState);

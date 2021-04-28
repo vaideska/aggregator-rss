@@ -12,7 +12,7 @@ export default () => {
   }).then(() => {
     const state = {
       streamLoadingStatus: 'init',
-      validURL: false,
+      validStatus: null,
       errorMsgFeedback: null,
       feeds: [],
       posts: [],

@@ -7,12 +7,13 @@ export default (state, i18next, elementsDOM) => {
 
   const renderFeedback = () => {
     const feedbackElement = elementsDOM.rssFormConteiner.querySelector('.feedback');
-    if (state.validURL && state.streamLoadingStatus === 'success') {
+    if (state.validStatus === 'success' && state.streamLoadingStatus === 'success') {
       feedbackElement.classList.remove('text-danger');
       feedbackElement.classList.add('text-success');
       feedbackElement.textContent = i18next.t('feedbackMessage.successMsg');
       elementsDOM.rssFormConteiner.reset();
-    } else {
+    }
+    if (state.validStatus === 'error' || state.streamLoadingStatus === 'error') {
       feedbackElement.classList.remove('text-success');
       feedbackElement.classList.add('text-danger');
       feedbackElement.textContent = i18next.t(`feedbackMessage.${state.errorMsgFeedback}`);
@@ -64,11 +65,10 @@ export default (state, i18next, elementsDOM) => {
       feedElement.append(feedTitle);
       feedElement.append(feedDescription);
       feedsList.append(feedElement);
-
-      elementsDOM.feedsConteiner.innerHTML = '';
-      elementsDOM.feedsConteiner.prepend(feedsList);
-      elementsDOM.feedsConteiner.prepend(headingFeeds);
     });
+    elementsDOM.feedsConteiner.innerHTML = '';
+    elementsDOM.feedsConteiner.prepend(feedsList);
+    elementsDOM.feedsConteiner.prepend(headingFeeds);
   };
 
   const renderPosts = () => {
@@ -122,6 +122,10 @@ export default (state, i18next, elementsDOM) => {
       }
       case 'streamLoadingStatus': {
         renderBlockForm();
+        break;
+      }
+      case 'validStatus': {
+        renderFeedback();
         break;
       }
       case 'uiState.visitedPosts': {
