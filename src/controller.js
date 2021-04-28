@@ -14,7 +14,6 @@ const getProxyURL = (url) => {
   proxyURL.pathname = 'get';
   proxyURL.searchParams.set('disableCache', 'true');
   proxyURL.searchParams.set('url', url);
-  console.log(proxyURL.toString());
   return proxyURL.toString();
 };
 
