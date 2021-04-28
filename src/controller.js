@@ -14,7 +14,7 @@ const getProxyURL = (url) => {
   const paramsURL = new URLSearchParams(proxyURL.search);
   paramsURL.set('url', url);
   proxyURL.search = paramsURL;
-  return proxyURL;
+  return proxyURL.toString();
 };
 
 yup.setLocale({
@@ -90,7 +90,7 @@ const createListenerForm = (watchedState, elementsDOM) => {
           } else if (err.isParsingError) {
             watchedState.errorMsgFeedback = 'notValidRss';
           } else {
-            watchedState.errorMsgFeedback = err;
+            watchedState.errorMsgFeedback = 'unknownError';
           }
           watchedState.streamLoadingStatus = 'error';
         });
