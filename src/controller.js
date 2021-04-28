@@ -6,14 +6,13 @@ import _ from 'lodash';
 import watcher from './watchers';
 import parseRSS from './parser';
 
-const proxy = 'https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=';
+const proxy = 'https://hexlet-allorigins.herokuapp.com/get';
 const updateInterval = 5000;
 
 const getProxyURL = (url) => {
   const proxyURL = new URL(proxy);
-  const paramsURL = new URLSearchParams(proxyURL.search);
-  paramsURL.set('url', url);
-  proxyURL.search = paramsURL;
+  proxyURL.searchParams.set('disableCache', 'true');
+  proxyURL.searchParams.set('url', url);
   return proxyURL.toString();
 };
 
