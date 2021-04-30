@@ -1,17 +1,19 @@
-const getDescription = (elem) => (elem.querySelector('description') === null ? '' : elem.querySelector('description').textContent);
-const getLink = (elem) => (elem.querySelector('link').textContent);
-
 const parseDataDOM = (dataDOM) => {
   const channelElement = dataDOM.querySelector('channel');
   const titleFeed = channelElement.querySelector('title').textContent;
-  const descriptionFeed = getDescription(channelElement);
+  const channelElementDesc = channelElement.querySelector('description');
+  const descriptionFeed = channelElementDesc === null ? '' : channelElementDesc.textContent;
 
   const itemElements = dataDOM.querySelectorAll('item');
-  const posts = Array.from(itemElements).reverse().map((itemElement) => ({
-    title: itemElement.querySelector('title').textContent,
-    link: getLink(itemElement),
-    description: getDescription(itemElement),
-  }));
+  const posts = Array.from(itemElements).reverse().map((itemElement) => {
+    const itemElementDesc = itemElement.querySelector('description');
+    const descriptionPost = itemElementDesc === null ? '' : itemElementDesc.textContent;
+    return {
+      title: itemElement.querySelector('title').textContent,
+      link: itemElement.querySelector('link').textContent,
+      description: descriptionPost,
+    };
+  });
   return { titleFeed, descriptionFeed, posts };
 };
 
